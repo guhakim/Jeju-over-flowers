@@ -26,6 +26,7 @@ export interface FoodItem {
 
 export interface NutritionAnalysis {
   foodName: string;
+  isOfficialData: boolean;
   riskScoreDiabetes: number;
   riskLabelDiabetes: string;
   riskScoreHypertension: number;

@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
+import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "../../lib/foodNutritionApi";
 
 let aiClient: GoogleGenAI | null = null;
 
@@ -29,10 +30,12 @@ export default async function handler(req: any, res: any) {
 
     const ai = getAiClient();
     const conditionListStr = Array.isArray(conditions) ? conditions.join(", ") : "없음";
+    const officialNutrition = await lookupOfficialNutrition(foodName);
 
     const prompt = `당신은 제주의 향토 음식 영양 분석 및 위험도를 정밀히 분석하는 의료/웰니스 전문가 AI입니다.
 음식 이름: "${foodName}"
 사용자의 현재 건강 위험 요인/관심사: [${conditionListStr}] (예: 당뇨, 고혈압, 신장 질환, 알레르기, 비건)
+${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
 
 이 음식에 대해 다음 조건에 맞춰 분석하여 JSON 형태로 반환해 주세요.
 - 각 건강 요인별 위험도 점수를 1.0 (매우 안전) ~ 5.0 (극도로 위험) 사이의 실수(float)로 계산하세요.
@@ -92,7 +95,8 @@ export default async function handler(req: any, res: any) {
     });
 
     const resultText = response.text || "{}";
-    res.status(200).json(JSON.parse(resultText));
+    const parsed = JSON.parse(resultText);
+    res.status(200).json({ ...parsed, isOfficialData: !!officialNutrition });
   } catch (error: any) {
     console.error("Analysis Error:", error);
     res.status(500).json({ error: error.message || "Failed to analyze food safety." });

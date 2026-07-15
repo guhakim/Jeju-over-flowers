@@ -17,7 +17,9 @@
 ## 프로젝트 구조
 
 ```
-server.ts               Express 서버 (Gemini API 프록시 + Vite 미들웨어/정적 파일 서빙)
+server.ts               Express 서버 (Gemini API 프록시 + Vite 미들웨어/정적 파일 서빙, 로컬 개발용)
+api/gemini/              Vercel 배포용 서버리스 함수 (server.ts와 동일한 로직)
+lib/foodNutritionApi.ts  식약처 식품영양성분DB Open API 연동 (공식 영양 데이터 조회)
 src/
   App.tsx                화면 라우팅 (welcome → home → route/food-analysis)
   components/
@@ -58,3 +60,4 @@ npm start        # 프로덕션 서버 실행 (dist/server.cjs)
 | --- | --- |
 | `GEMINI_API_KEY` | Gemini API 호출에 사용되는 API 키 |
 | `APP_URL` | 앱이 호스팅되는 URL (자체 참조 링크 등에 사용) |
+| `FOOD_SAFETY_API_KEY` | 식품의약품안전처 식품영양성분DB Open API 키 (미설정 시 AI 추정치로만 동작) |

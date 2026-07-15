@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { 
-  ArrowLeft, 
-  User, 
-  Sparkles, 
-  Star, 
-  ShieldAlert, 
-  CheckCircle, 
-  Home, 
-  Map, 
+import {
+  ArrowLeft,
+  User,
+  Sparkles,
+  Star,
+  ShieldAlert,
+  ShieldCheck,
+  CheckCircle,
+  Home,
+  Map,
   BookOpen,
   Apple,
   Flower
@@ -168,6 +169,19 @@ export default function FoodAnalysisScreen({
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                 />
+                <div className="absolute top-4 right-4">
+                  {analysis.isOfficialData ? (
+                    <span className="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-xs text-emerald-800 border border-emerald-200/50 px-3.5 py-1.5 rounded-xl text-[10px] font-extrabold shadow-sm">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      식약처 공식 영양DB 기반
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-xs text-amber-700 border border-amber-200/50 px-3.5 py-1.5 rounded-xl text-[10px] font-extrabold shadow-sm">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                      AI 추정 분석 (참고용)
+                    </span>
+                  )}
+                </div>
                 <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col justify-end">
                   <span className="text-[10px] text-[#ffeaa7] font-extrabold tracking-widest uppercase block mb-1">JEJU WELLNESS DIET</span>
                   <h2 className="text-white font-display text-2xl md:text-3xl font-extrabold tracking-tight">{analysis.foodName}</h2>
