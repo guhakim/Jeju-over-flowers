@@ -42,7 +42,8 @@ export async function lookupOfficialNutrition(foodName: string): Promise<Officia
     }
 
     const data: any = JSON.parse(bodyText);
-    const items = data?.body?.items?.item;
+    const rawItems = data?.body?.items;
+    const items = Array.isArray(rawItems) ? rawItems : rawItems?.item;
     const row = Array.isArray(items) ? items[0] : items;
     if (!row) {
       console.error("FoodSafetyKorea API no match:", data?.header, bodyText.slice(0, 500));
