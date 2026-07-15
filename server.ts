@@ -5,6 +5,7 @@ import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "./api/_lib/foodNutritionApi";
 import { getJejuEmergencyHospitals } from "./api/_lib/emergencyMedicalApi";
+import { getJejuAirQuality, getJejuUvIndex } from "./api/_lib/weatherApi";
 
 dotenv.config();
 
@@ -171,7 +172,18 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 4. Vite or Static Files setup
+  // 4. Environmental Conditions Endpoint
+  app.get("/api/environment/jeju", async (_req, res) => {
+    try {
+      const [airQuality, uvIndex] = await Promise.all([getJejuAirQuality(), getJejuUvIndex()]);
+      res.json({ airQuality, uvIndex });
+    } catch (error: any) {
+      console.error("Environment Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch environmental data." });
+    }
+  });
+
+  // 5. Vite or Static Files setup
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { 
   ArrowLeft, 
@@ -18,6 +18,22 @@ import {
 } from "lucide-react";
 import { WELLNESS_ITINERARY } from "../data";
 
+// 에어코리아/기상청 API 응답을 못 받을 때 쓰는 오프라인 대체값
+const FALLBACK_ENVIRONMENT = {
+  airGrade: "매우 좋음",
+  pm25Text: "실시간 수치: 8 µg/m³",
+  uvGrade: "보통",
+  uvHint: "양산 지참 및 차단제 도포 권장",
+};
+
+const UV_HINTS: Record<string, string> = {
+  낮음: "자외선 차단제 없이도 비교적 안전해요",
+  보통: "양산 지참 및 차단제 도포 권장",
+  높음: "그늘 이용과 자외선 차단제 재도포 권장",
+  매우높음: "장시간 야외활동은 피하고 차단제를 자주 덧발라 주세요",
+  위험: "가급적 실외 활동을 자제해 주세요",
+};
+
 interface WellnessRouteScreenProps {
   onBack: () => void;
   onChangeScreen: (screen: string) => void;
@@ -30,10 +46,35 @@ export default function WellnessRouteScreen({
   onSelectFood,
 }: WellnessRouteScreenProps) {
   const [isSaved, setIsSaved] = useState(false);
+  const [environment, setEnvironment] = useState(FALLBACK_ENVIRONMENT);
 
   const handleSaveToggle = () => {
     setIsSaved(!isSaved);
   };
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/environment/jeju")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!active || !data) return;
+        setEnvironment((prev) => ({
+          airGrade: data.airQuality?.grade ?? prev.airGrade,
+          pm25Text:
+            data.airQuality?.pm25Value != null
+              ? `실시간 수치: ${data.airQuality.pm25Value} µg/m³`
+              : prev.pm25Text,
+          uvGrade: data.uvIndex?.grade ?? prev.uvGrade,
+          uvHint: data.uvIndex?.grade ? (UV_HINTS[data.uvIndex.grade] ?? prev.uvHint) : prev.uvHint,
+        }));
+      })
+      .catch(() => {
+        console.warn("Using offline static fallback for environment data");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbfa] text-[#1b1c19]">
@@ -135,8 +176,8 @@ export default function WellnessRouteScreen({
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#eae8e3] flex items-center justify-between min-h-[105px]">
               <div>
                 <p className="text-[10px] font-bold text-[#5c6869] uppercase tracking-wider">제주 대기 상태</p>
-                <p className="text-xl font-extrabold text-emerald-700 mt-1">매우 좋음</p>
-                <p className="text-[11px] text-[#5c6869] font-semibold mt-1">PM2.5 실시간 수치: 8 µg/m³</p>
+                <p className="text-xl font-extrabold text-emerald-700 mt-1">{environment.airGrade}</p>
+                <p className="text-[11px] text-[#5c6869] font-semibold mt-1">PM2.5 {environment.pm25Text}</p>
               </div>
               <Wind className="w-10 h-10 text-emerald-600 opacity-80 shrink-0" />
             </div>
@@ -145,8 +186,8 @@ export default function WellnessRouteScreen({
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#eae8e3] flex items-center justify-between min-h-[105px]">
               <div>
                 <p className="text-[10px] font-bold text-[#5c6869] uppercase tracking-wider">자외선 자극지수</p>
-                <p className="text-xl font-extrabold text-amber-600 mt-1">보통</p>
-                <p className="text-[11px] text-[#5c6869] font-semibold mt-1">양산 지참 및 차단제 도포 권장</p>
+                <p className="text-xl font-extrabold text-amber-600 mt-1">{environment.uvGrade}</p>
+                <p className="text-[11px] text-[#5c6869] font-semibold mt-1">{environment.uvHint}</p>
               </div>
               <Sun className="w-10 h-10 text-amber-500 opacity-80 shrink-0" />
             </div>
