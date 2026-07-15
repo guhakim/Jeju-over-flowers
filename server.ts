@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "./api/_lib/foodNutritionApi";
 import { getJejuEmergencyHospitals } from "./api/_lib/emergencyMedicalApi";
 import { getJejuAirQuality, getJejuUvIndex } from "./api/_lib/weatherApi";
+import { getJejuBarrierFreeSpots } from "./api/_lib/jejuDataHub";
 
 dotenv.config();
 
@@ -183,7 +184,18 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 5. Vite or Static Files setup
+  // 5. Barrier-Free Tourism Spots Endpoint
+  app.get("/api/tourism/barrier-free", async (_req, res) => {
+    try {
+      const spots = await getJejuBarrierFreeSpots();
+      res.json({ spots: spots ?? [] });
+    } catch (error: any) {
+      console.error("Barrier-Free Spots Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch barrier-free spots." });
+    }
+  });
+
+  // 6. Vite or Static Files setup
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

@@ -14,7 +14,8 @@ import {
   Home,
   Map,
   BookOpen,
-  Flower
+  Flower,
+  MapPin
 } from "lucide-react";
 import { WELLNESS_ITINERARY } from "../data";
 
@@ -25,6 +26,14 @@ const FALLBACK_ENVIRONMENT = {
   uvGrade: "보통",
   uvHint: "양산 지참 및 차단제 도포 권장",
 };
+
+// 제주데이터허브 API 응답을 못 받을 때 쓰는 오프라인 대체 목록
+const FALLBACK_BARRIER_FREE_SPOTS = [
+  { name: "한라수목원", address: "제주시 연동 1002" },
+  { name: "칠십리시공원", address: "서귀포시 서홍동 571-3" },
+  { name: "제주현대미술관", address: "제주시 한경면 저지리 2114-68" },
+  { name: "함덕서우봉해변", address: "제주시 조천읍 함덕리 산 1" },
+];
 
 const UV_HINTS: Record<string, string> = {
   낮음: "자외선 차단제 없이도 비교적 안전해요",
@@ -47,6 +56,7 @@ export default function WellnessRouteScreen({
 }: WellnessRouteScreenProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [environment, setEnvironment] = useState(FALLBACK_ENVIRONMENT);
+  const [barrierFreeSpots, setBarrierFreeSpots] = useState(FALLBACK_BARRIER_FREE_SPOTS);
 
   const handleSaveToggle = () => {
     setIsSaved(!isSaved);
@@ -70,6 +80,23 @@ export default function WellnessRouteScreen({
       })
       .catch(() => {
         console.warn("Using offline static fallback for environment data");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/tourism/barrier-free")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.spots?.length > 0) {
+          setBarrierFreeSpots(data.spots.slice(0, 8));
+        }
+      })
+      .catch(() => {
+        console.warn("Using offline static fallback for barrier-free spots");
       });
     return () => {
       active = false;
@@ -284,6 +311,28 @@ export default function WellnessRouteScreen({
                   </div>
                 </div>
               </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Certified Barrier-Free Spots (제주데이터허브 무장애 여행지 정보) */}
+        <section className="space-y-4">
+          <div>
+            <h3 className="font-display font-extrabold text-2xl text-[#1b1c19] tracking-tight">인증된 무장애 여행지</h3>
+            <p className="text-xs text-[#5c6869] font-bold mt-1">제주데이터허브 제공 무장애 여행지 정보 기반</p>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 no-scrollbar">
+            {barrierFreeSpots.map((spot, idx) => (
+              <div
+                key={idx}
+                className="min-w-[220px] bg-white p-4 rounded-2xl shadow-sm border border-[#eae8e3] flex items-start gap-2.5 shrink-0"
+              >
+                <MapPin className="w-4 h-4 text-[#006067] shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-display font-extrabold text-sm text-[#1b1c19]">{spot.name}</p>
+                  <p className="text-[11px] text-[#5c6869] font-semibold mt-0.5">{spot.address}</p>
+                </div>
+              </div>
             ))}
           </div>
         </section>
