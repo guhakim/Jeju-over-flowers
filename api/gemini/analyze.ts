@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "../../lib/foodNutritionApi";
+import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "../_lib/foodNutritionApi.js";
 
 let aiClient: GoogleGenAI | null = null;
 

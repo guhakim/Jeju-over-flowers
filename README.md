@@ -19,7 +19,7 @@
 ```
 server.ts               Express 서버 (Gemini API 프록시 + Vite 미들웨어/정적 파일 서빙, 로컬 개발용)
 api/gemini/              Vercel 배포용 서버리스 함수 (server.ts와 동일한 로직)
-lib/foodNutritionApi.ts  식약처 식품영양성분DB Open API 연동 (공식 영양 데이터 조회)
+api/_lib/foodNutritionApi.ts  식약처 식품영양성분DB Open API 연동 (공식 영양 데이터 조회)
 src/
   App.tsx                화면 라우팅 (welcome → home → route/food-analysis)
   components/

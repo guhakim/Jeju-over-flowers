@@ -3,7 +3,7 @@ import path from "path";
 import { GoogleGenAI, Type } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "./lib/foodNutritionApi";
+import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "./api/_lib/foodNutritionApi";
 
 dotenv.config();
 
