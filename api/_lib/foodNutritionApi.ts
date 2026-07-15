@@ -1,9 +1,8 @@
-// 식품의약품안전처 식품영양성분DB Open API (서비스ID: I2790)
-// https://various.foodsafetykorea.go.kr/nutrient/ 에서 발급받은 키를 FOOD_SAFETY_API_KEY 환경변수로 설정.
-// NUTR_CONT1~6 필드 매핑은 공개된 활용 사례들을 참고한 것으로, 정식 Swagger 문서로 재검증 권장.
+// 식품의약품안전처 식품영양성분DB Open API (공공데이터포털 데이터셋 15127578)
+// https://www.data.go.kr/data/15127578/openapi.do 에서 발급받은 서비스키(디코딩 키 권장)를
+// FOOD_SAFETY_API_KEY 환경변수로 설정. Swagger 명세(getFoodNtrCpntDbInq02)로 검증된 필드 매핑 사용.
 
-const API_BASE = "https://openapi.foodsafetykorea.go.kr/api";
-const SERVICE_ID = "I2790";
+const API_URL = "https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02";
 
 export interface OfficialNutrition {
   foodName: string;
@@ -25,25 +24,32 @@ export async function lookupOfficialNutrition(foodName: string): Promise<Officia
   const apiKey = process.env.FOOD_SAFETY_API_KEY;
   if (!apiKey) return null;
 
-  const url = `${API_BASE}/${apiKey}/${SERVICE_ID}/json/1/5/DESC_KOR=${encodeURIComponent(foodName)}`;
+  const params = new URLSearchParams({
+    serviceKey: apiKey,
+    type: "json",
+    numOfRows: "5",
+    pageNo: "1",
+    FOOD_NM_KR: foodName,
+  });
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(`${API_URL}?${params.toString()}`);
     if (!response.ok) return null;
 
     const data: any = await response.json();
-    const row = data?.[SERVICE_ID]?.row?.[0];
+    const items = data?.body?.items?.item;
+    const row = Array.isArray(items) ? items[0] : items;
     if (!row) return null;
 
     return {
-      foodName: row.DESC_KOR ?? foodName,
-      servingSize: row.SERVING_SIZE ? `${row.SERVING_SIZE}${row.SERVING_SIZE_UNIT ?? "g"}` : null,
-      calorieKcal: parseNum(row.NUTR_CONT1),
-      carbsG: parseNum(row.NUTR_CONT2),
-      proteinG: parseNum(row.NUTR_CONT3),
-      fatG: parseNum(row.NUTR_CONT4),
-      sugarsG: parseNum(row.NUTR_CONT5),
-      sodiumMg: parseNum(row.NUTR_CONT6),
+      foodName: row.FOOD_NM_KR ?? foodName,
+      servingSize: row.SERVING_SIZE ? String(row.SERVING_SIZE) : null,
+      calorieKcal: parseNum(row.AMT_NUM1),
+      proteinG: parseNum(row.AMT_NUM3),
+      fatG: parseNum(row.AMT_NUM4),
+      carbsG: parseNum(row.AMT_NUM6),
+      sugarsG: parseNum(row.AMT_NUM7),
+      sodiumMg: parseNum(row.AMT_NUM13),
     };
   } catch (error) {
     console.error("FoodSafetyKorea API error:", error);
