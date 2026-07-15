@@ -34,12 +34,20 @@ export async function lookupOfficialNutrition(foodName: string): Promise<Officia
 
   try {
     const response = await fetch(`${API_URL}?${params.toString()}`);
-    if (!response.ok) return null;
+    const bodyText = await response.text();
 
-    const data: any = await response.json();
+    if (!response.ok) {
+      console.error("FoodSafetyKorea API HTTP error:", response.status, bodyText.slice(0, 500));
+      return null;
+    }
+
+    const data: any = JSON.parse(bodyText);
     const items = data?.body?.items?.item;
     const row = Array.isArray(items) ? items[0] : items;
-    if (!row) return null;
+    if (!row) {
+      console.error("FoodSafetyKorea API no match:", data?.header, bodyText.slice(0, 500));
+      return null;
+    }
 
     return {
       foodName: row.FOOD_NM_KR ?? foodName,

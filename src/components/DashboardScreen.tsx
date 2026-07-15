@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { motion } from "motion/react";
 import { 
   HeartPulse, 
@@ -23,6 +23,14 @@ import {
 } from "lucide-react";
 import { FOOD_ITEMS } from "../data";
 
+// 국립중앙의료원 응급의료기관 API 응답을 못 받을 때 쓰는 오프라인 대체 목록
+const FALLBACK_JEJU_HOSPITALS = [
+  { name: "제주대학교병원 (권역응급의료센터)", phone: "064-717-1114", address: "제주시 아란13길 15" },
+  { name: "한라병원 (권역외상센터)", phone: "064-740-5000", address: "제주시 도령로 65" },
+  { name: "서귀포의료원 (서귀포 지역 응급)", phone: "064-730-3000", address: "서귀포시 동홍동 1530-2" },
+  { name: "제주중앙병원", phone: "064-786-7000", address: "제주시 이도이동" }
+];
+
 interface DashboardScreenProps {
   selectedConditions: string[];
   onChangeScreen: (screen: string) => void;
@@ -38,6 +46,24 @@ export default function DashboardScreen({
 }: DashboardScreenProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [hospitals, setHospitals] = useState(FALLBACK_JEJU_HOSPITALS);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/emergency/hospitals")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.hospitals?.length > 0) {
+          setHospitals(data.hospitals);
+        }
+      })
+      .catch(() => {
+        console.warn("Using offline static fallback for emergency hospitals");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Format the mode text based on selected conditions
   const getConditionsText = () => {
@@ -59,14 +85,6 @@ export default function DashboardScreen({
       onSelectFood(searchQuery.trim());
     }
   };
-
-  // List of actual emergency institutions in Jeju for safety and utility
-  const JEJU_HOSPITALS = [
-    { name: "제주대학교병원 (권역응급의료센터)", phone: "064-717-1114", address: "제주시 아란13길 15" },
-    { name: "한라병원 (권역외상센터)", phone: "064-740-5000", address: "제주시 도령로 65" },
-    { name: "서귀포의료원 (서귀포 지역 응급)", phone: "064-730-3000", address: "서귀포시 동홍동 1530-2" },
-    { name: "제주중앙병원", phone: "064-786-7000", address: "제주시 이도이동" }
-  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbfa] text-[#1b1c19]">
@@ -351,7 +369,7 @@ export default function DashboardScreen({
             </p>
 
             <div className="space-y-3">
-              {JEJU_HOSPITALS.map((hosp, i) => (
+              {hospitals.map((hosp, i) => (
                 <div key={i} className="p-3.5 bg-[#fcfbfa] rounded-2xl border border-[#eae8e3] flex justify-between items-center gap-3">
                   <div>
                     <h4 className="font-display font-extrabold text-sm text-[#1b1c19]">{hosp.name}</h4>

@@ -4,6 +4,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "./api/_lib/foodNutritionApi";
+import { getJejuEmergencyHospitals } from "./api/_lib/emergencyMedicalApi";
 
 dotenv.config();
 
@@ -159,7 +160,18 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 3. Vite or Static Files setup
+  // 3. Emergency Hospitals Endpoint
+  app.get("/api/emergency/hospitals", async (_req, res) => {
+    try {
+      const hospitals = await getJejuEmergencyHospitals();
+      res.json({ hospitals: hospitals ?? [] });
+    } catch (error: any) {
+      console.error("Emergency Hospitals Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch emergency hospitals." });
+    }
+  });
+
+  // 4. Vite or Static Files setup
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
