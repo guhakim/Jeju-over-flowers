@@ -77,7 +77,7 @@ src/
    ```
    npm run dev
    ```
-   기본적으로 http://localhost:3000 에서 실행됩니다.
+   기본적으로 [http://localhost:3000](https://jeju-over-flowers.vercel.app/) 에서 실행됩니다.
 
 ## 빌드 및 배포
 
