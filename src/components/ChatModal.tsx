@@ -25,7 +25,7 @@ export default function ChatModal({
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "model",
-      text: "안녕하세요! 꽃보다 제주 AI 건강 비서입니다. 제주의 맛있는 향토음식을 안전하게 즐기실 수 있도록 무엇이든 물어보세요! 😊",
+      text: "안녕하세요! Jeju over Flowers AI 건강 비서입니다. 제주의 맛있는 향토음식을 안전하게 즐기실 수 있도록 무엇이든 물어보세요! 😊",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
   ]);
@@ -121,7 +121,7 @@ export default function ChatModal({
                 <Flower className="w-5.5 h-5.5 text-[#ff9f43] fill-[#ffeaa7] animate-spin-slow" />
               </div>
               <div>
-                <h3 className="font-display font-extrabold text-base text-white tracking-tight">꽃보다 제주 AI 비서</h3>
+                <h3 className="font-display font-extrabold text-base text-white tracking-tight">Jeju over Flowers AI 비서</h3>
                 <p className="text-[10px] text-[#ffeaa7] font-extrabold tracking-widest uppercase">24/7 Wellness Companion</p>
               </div>
             </div>

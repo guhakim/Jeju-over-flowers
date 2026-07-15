@@ -120,7 +120,7 @@ export default function WellnessRouteScreen({
               <Flower className="w-5 h-5 text-[#ff9f43] fill-[#ffeaa7] animate-spin-slow" />
             </div>
             <div>
-              <h1 className="font-display font-extrabold text-base text-[#006067] tracking-tight">꽃보다 제주</h1>
+              <h1 className="font-display font-extrabold text-base text-[#006067] tracking-tight">Jeju over Flowers</h1>
               <p className="text-[8px] text-[#5c6869] font-extrabold tracking-widest uppercase">Wellness Guide</p>
             </div>
           </div>

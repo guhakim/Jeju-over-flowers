@@ -95,7 +95,7 @@ export default function DashboardScreen({
             <Flower className="w-5.5 h-5.5 text-[#ff9f43] fill-[#ffeaa7] animate-spin-slow" />
           </div>
           <div>
-            <h1 className="font-display font-extrabold text-lg text-[#006067] tracking-tight">꽃보다 제주</h1>
+            <h1 className="font-display font-extrabold text-lg text-[#006067] tracking-tight">Jeju over Flowers</h1>
             <p className="text-[9px] text-[#5c6869] font-extrabold tracking-widest uppercase">My Wellness Jeju</p>
           </div>
         </div>
@@ -365,7 +365,7 @@ export default function DashboardScreen({
             </div>
 
             <p className="text-xs text-[#5c6869] mb-5 leading-relaxed font-bold">
-              만일의 상황 발생 시 신속히 안전 요원이나 하단의 전문 병원 응급실에 연락하세요. 꽃보다 제주는 항상 119 구급대 및 주요 응급실 정보를 지원합니다.
+              만일의 상황 발생 시 신속히 안전 요원이나 하단의 전문 병원 응급실에 연락하세요. Jeju over Flowers는 항상 119 구급대 및 주요 응급실 정보를 지원합니다.
             </p>
 
             <div className="space-y-3">

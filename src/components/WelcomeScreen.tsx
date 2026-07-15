@@ -60,7 +60,7 @@ export default function WelcomeScreen({
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full"></span>
           </div>
           <div>
-            <span className="font-display font-extrabold text-lg md:text-xl tracking-tight text-[#006067]">꽃보다 제주</span>
+            <span className="font-display font-extrabold text-lg md:text-xl tracking-tight text-[#006067]">Jeju over Flowers</span>
             <span className="block text-[10px] text-[#3e494a] font-bold tracking-widest uppercase">Jeju Wellness Trip</span>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function WelcomeScreen({
               </span>
               <h2 className="text-white font-display text-2xl md:text-3xl font-extrabold leading-snug tracking-tight">
                 당신의 건강하고 활기찬<br/>
-                제주 힐링 여정, 꽃보다 제주와 함께
+                제주 힐링 여정, Jeju over Flowers와 함께
               </h2>
             </div>
           </motion.div>
