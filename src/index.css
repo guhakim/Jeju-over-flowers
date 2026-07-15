@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@600;700;800&family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Public Sans", sans-serif;
+  --animate-spin-slow: spin-slow 12s linear infinite;
+  --animate-pulse-subtle: pulse-subtle 3s ease-in-out infinite;
+
+  @keyframes spin-slow {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.85;
+      transform: scale(0.98);
+    }
+  }
+}
+
+/* Custom hides for horizontal scrolling elements */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Premium Jeju Travel styling cards */
+.glass-header {
+  background: rgba(251, 249, 244, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 96, 103, 0.08);
+}
+
+.travel-shadow {
+  box-shadow: 0 4px 20px -2px rgba(139, 92, 26, 0.06), 0 2px 8px -1px rgba(0, 0, 0, 0.02);
+}
+
+.jeju-gradient-btn {
+  background: linear-gradient(135deg, #006067 0%, #007b83 100%);
+  box-shadow: 0 4px 14px 0 rgba(0, 96, 103, 0.25);
+}
+
+.jeju-orange-gradient {
+  background: linear-gradient(135deg, #ff9f43 0%, #ff6b6b 100%);
+}

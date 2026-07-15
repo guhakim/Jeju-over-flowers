@@ -1,0 +1,8 @@
+{
+  "name": "꽃보다 제주",
+  "description": "제주에서의 안전하고 건강한 웰니스 여행을 위한 AI 맞춤형 여행 코스 및 향토 음식 영양 분석 서비스",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
