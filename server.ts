@@ -68,6 +68,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
         model: "gemini-3.5-flash",
         contents: prompt,
         config: {
+          thinkingConfig: { thinkingBudget: 0 },
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -153,6 +154,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
         model: "gemini-3.5-flash",
         history: chatHistory,
         config: {
+          thinkingConfig: { thinkingBudget: 0 },
           systemInstruction,
         },
       });

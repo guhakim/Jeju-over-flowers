@@ -48,6 +48,7 @@ export default async function handler(req: any, res: any) {
       model: "gemini-3.5-flash",
       history: chatHistory,
       config: {
+        thinkingConfig: { thinkingBudget: 0 },
         systemInstruction,
       },
     });
