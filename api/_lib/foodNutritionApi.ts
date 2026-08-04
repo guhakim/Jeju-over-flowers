@@ -76,6 +76,23 @@ async function fetchOfficialNutrition(foodName: string): Promise<OfficialNutriti
   }
 }
 
+// AI가 "정보 없음" 텍스트와 모순되는 진행률(progress)을 반환하는 경우를 방지하는 안전망.
+// 프롬프트로 지시했지만 LLM이 놓칠 수 있으므로 서버에서 한 번 더 강제 보정한다.
+export function sanitizeNutritionAnalysis(parsed: any): any {
+  if (!parsed?.nutrition) return parsed;
+  const nutrition = { ...parsed.nutrition };
+  for (const [textKey, progressKey] of [
+    ["carbs", "carbsProgress"],
+    ["sodium", "sodiumProgress"],
+    ["sugars", "sugarsProgress"],
+  ] as const) {
+    if (typeof nutrition[textKey] === "string" && nutrition[textKey].includes("정보 없음")) {
+      nutrition[progressKey] = 0;
+    }
+  }
+  return { ...parsed, nutrition };
+}
+
 export function formatOfficialNutritionForPrompt(n: OfficialNutrition): string {
   return `
 

@@ -3,7 +3,7 @@ import path from "path";
 import { GoogleGenAI, Type } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "./api/_lib/foodNutritionApi";
+import { lookupOfficialNutrition, formatOfficialNutritionForPrompt, sanitizeNutritionAnalysis } from "./api/_lib/foodNutritionApi";
 import { getJejuEmergencyHospitals } from "./api/_lib/emergencyMedicalApi";
 import { getJejuAirQuality, getJejuUvIndex } from "./api/_lib/weatherApi";
 import { getJejuBarrierFreeSpots } from "./api/_lib/jejuDataHub";
@@ -65,7 +65,8 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
 - 사용자가 기입한 건강 요인(예: 당뇨, 고혈압)에 따라 영양소 분석(탄수화물, 나트륨, 당류)을 맞춤으로 수치화하고 직관적으로 설명해 주세요. (예: "78g (높음)", "2,300mg (위험)")
 - AI 건강 추천(aiRecommendation)에는 사용자가 안전하게 이 음식을 먹을 수 있는 요령(예: "면은 절반만 먹고 국물은 남기기", "채소를 먼저 충분히 섭취")을 포함하세요.
 - '더 건강한 선택(alternative)' 필드에는 제주 향토음식 중 이 요인들을 지닌 사용자에게 아주 안전하고 건강하게 대체할 수 있는 대표 음식을 하나 선정하고, 구체적인 추천 사유를 작성하세요. (예: "제주 돔베고기", "신선한 채소쌈과 함께 수육을 드시는 것이 나트륨과 탄수화물을 획기적으로 줄이는 방법입니다.")
-- 입력된 "음식 이름"이 구체적인 음식/메뉴명이 아니라 식당·카페 등 장소(상호) 이름으로 보이는 경우, isVenueNameGuess를 true로 설정하고 상호명에서 유추한 대표 메뉴로 분석하되, aiRecommendation 맨 앞에 "실제 판매 메뉴는 방문 전 식당에 확인이 필요합니다"라는 안내를 반드시 포함하세요. 명확한 음식/메뉴명이면 isVenueNameGuess를 false로 설정하세요.`;
+- 입력된 "음식 이름"이 구체적인 음식/메뉴명이 아니라 식당·카페 등 장소(상호) 이름으로 보이는 경우, isVenueNameGuess를 true로 설정하고 상호명에서 유추한 대표 메뉴로 분석하되, aiRecommendation 맨 앞에 "실제 판매 메뉴는 방문 전 식당에 확인이 필요합니다"라는 안내를 반드시 포함하세요. 명확한 음식/메뉴명이면 isVenueNameGuess를 false로 설정하세요.
+- nutrition의 carbs/sodium/sugars 값이 "정보 없음"이면, 그에 대응하는 carbsProgress/sodiumProgress/sugarsProgress는 반드시 0으로 설정하세요. 진행률(Progress) 수치는 절대 텍스트 값과 모순되게 임의로 채우지 마세요.`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
@@ -93,11 +94,11 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
                 type: Type.OBJECT,
                 properties: {
                   carbs: { type: Type.STRING, description: "탄수화물 분석 (예: '78g (높음)')" },
-                  carbsProgress: { type: Type.INTEGER, description: "0~100 사이의 임팩트바 진행율" },
+                  carbsProgress: { type: Type.INTEGER, description: "0~100 사이의 임팩트바 진행율 (carbs가 '정보 없음'이면 반드시 0)" },
                   sodium: { type: Type.STRING, description: "나트륨 분석 (예: '2,300mg (위험)')" },
-                  sodiumProgress: { type: Type.INTEGER, description: "0~100 사이의 진행율" },
+                  sodiumProgress: { type: Type.INTEGER, description: "0~100 사이의 진행율 (sodium이 '정보 없음'이면 반드시 0)" },
                   sugars: { type: Type.STRING, description: "당류 분석 (예: '4g (안전)')" },
-                  sugarsProgress: { type: Type.INTEGER, description: "0~100 사이의 진행율" }
+                  sugarsProgress: { type: Type.INTEGER, description: "0~100 사이의 진행율 (sugars가 '정보 없음'이면 반드시 0)" }
                 },
                 required: ["carbs", "carbsProgress", "sodium", "sodiumProgress", "sugars", "sugarsProgress"]
               },
@@ -120,7 +121,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
       });
 
       const resultText = response.text || "{}";
-      const parsed = JSON.parse(resultText);
+      const parsed = sanitizeNutritionAnalysis(JSON.parse(resultText));
       res.json({ ...parsed, isOfficialData: !!officialNutrition });
     } catch (error: any) {
       console.error("Analysis Error:", error);

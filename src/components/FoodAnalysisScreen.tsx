@@ -88,17 +88,30 @@ export default function FoodAnalysisScreen({
     return { text: "text-[#006d3d]", bg: "bg-[#97f3b5]/40", border: "border-[#006d3d]" };
   };
 
-  // Get image for current analyzed food. 큐레이션된 3개 향토음식 외에는 무관한 사진을
-  // 보여주는 대신 null을 반환해서 정직한 플레이스홀더를 표시한다.
+  // Get image for current analyzed food. 정확한 음식별 실사진이 없어 잘못된 사진을
+  // 보여주느니, 카테고리 단위로 대표 이미지를 매칭하고 그마저 없으면 플레이스홀더를 표시한다.
+  // 아래 이미지는 모두 앱 내 다른 화면(FOOD_ITEMS/WELLNESS_ITINERARY)에서 실제로
+  // 검증된 URL만 재사용한다 — 임의의 새 이미지 URL을 추측해 넣지 않는다.
   const getFoodImage = (name: string): string | null => {
-    if (name.includes("국수") || name.includes("Noodles")) {
+    // 해산물/생선구이류 (가장 구체적인 키워드부터 우선 매칭)
+    if (/생선|해산물|갈치|고등어|옥돔|물회|회$/.test(name) || name.includes("Fish") || name.includes("Seafood")) {
+      return "https://lh3.googleusercontent.com/aida-public/AB6AXuBUfZ3rY4ZGub0JE4NdcgMkirSOtHlXgHYYKSOZINrC4x3RpAvrPtBzI44aZ_q-EF7pTBa0uTCp170b4L1h5vHBd7NW0EQSdrU6FEvEUXJujAIMFuSFBLWTsnDHw0B2rARxKNX6PqpaCj8ow6Bu15K3G_CGc40Rf5s4F46FlVQriuoP6SrX0--qY3ppaq9tk6e8DdzPoQyzAB4b904VOmC4pttpL_zT6ISgcGxuchL6DLQoSTxaJZDRCFhawifKoYwPn3d5BNLH80gH";
+    }
+    // 면류(국수/파스타/라면 등)
+    if (/국수|면|파스타|스파게티|라면/.test(name) || name.includes("Noodles") || name.includes("Pasta")) {
       return "https://lh3.googleusercontent.com/aida-public/AB6AXuC3OAO_CxaVJ3VR2qNEX7InneICEOPXMyTAlmDkMtoYXp68-wJjc_Zb4eCwHDyYdhy9PKvffYVASoQRpF_6VhF9EFCLjYMcnDFv6nT4gW7zA0mVO2zoZh5er4Ntm4KhCbomasayo9jo9XabzBbIalNYe1O1FfxpvyuhvbGmn6vske9upvmsRPfg281QDphjaJXTxbbVRK9dZijRxczgScERQAY1DrPKBJQtZ-FgcgvqDTKoGPTsolE9b_G1QrIDbr8n1c7eTY8B3a8c";
     }
-    if (name.includes("흑돼지") || name.includes("Pork")) {
+    // 돼지고기/육류
+    if (/흑돼지|돼지고기|삼겹살|목살|수육|돔베고기/.test(name) || name.includes("Pork")) {
       return "https://lh3.googleusercontent.com/aida-public/AB6AXuB14sc4YnFjO6EMzRa545_QwoyRbUAMHsR7DalF7Ux5PXpBpD71MzItIHNv1l_2m07vv1v2SR4UlqiB-ZsgZFGxnKp7ujnFZNgP5KpKnAOvUX-xTa9TaE-PaFkqlrkNaCukXx5UFckKx8zLGw1GXI64BaK0zJps89mCneiU42oeR5pjDlM8I7KOWdbsb4iDr-SXKvOFQs_RaCkif9BxmAeVRWbbZmQm1LUbZHPljxjC0DfT1QO77NjP2b543o96-iJ2r-Zuau3cJT6C";
     }
-    if (name.includes("전복죽") || name.includes("Porridge")) {
+    // 죽/스프/국물 요리
+    if (/죽|스프|수프|탕|찌개/.test(name) || name.includes("Porridge") || name.includes("Soup")) {
       return "https://lh3.googleusercontent.com/aida-public/AB6AXuAcHjS51V5YuPdDvFKq2DbP7ZmFr-Gjh2Be4WsxOBp6F-V_Fv1oC2UxAp0RAAlg_Qs4vuApo24EsbqMTYpWIPdZF_tgNDctySYzP5yaCQ60qsxKc53nIZXBS0zS9pIN6Pvfe5_TPKfx-mlzkZ3LfGoUJnAt-E6ayv2ww0SqyDrCaQaTphbj6m29aZ89NURo1Gy8FK6CQRuISQREGqUO0ZZoC3jb1HmgCiDwZIuWmsYN7qsuL_zSd6zlkQcjSKHNszmbgNxleXQ5282b";
+    }
+    // 차/음료
+    if (/차$|음료|주스|스무디/.test(name) || name.includes("Tea") || name.includes("Juice")) {
+      return "https://lh3.googleusercontent.com/aida-public/AB6AXuBgA-1-HkWk5EdxFhWf56jin0W24BYmMjV0CxNQ4PhXlLuPImCX476YKvqUItorYiqURUlXxt33FaxfGsITp4bNB3ti3CQPFbfDFQ-UBB-GKVyq9gEbuPlTH66TF8P8RQ3ltSBrkKapX-yMvkiWILwYZgEU1rud-uvho8Fs38RydYXOkeRBwVd2n6K2q3PSx73YgjIpo5UOpBsV_Md23V6nwvoD9-Of4I2vDG6wd9cj1rIU29LpVts7aWx1rfurYZmReNevr-ia-l9d";
     }
     return null;
   };
