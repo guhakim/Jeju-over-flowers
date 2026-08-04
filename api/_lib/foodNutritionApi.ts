@@ -2,6 +2,9 @@
 // https://www.data.go.kr/data/15127578/openapi.do 에서 발급받은 서비스키(디코딩 키 권장)를
 // FOOD_SAFETY_API_KEY 환경변수로 설정. Swagger 명세(getFoodNtrCpntDbInq02)로 검증된 필드 매핑 사용.
 
+import { cached } from "./cache.js";
+import { fetchWithTimeout } from "./httpUtils.js";
+
 const API_URL = "https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02";
 
 export interface OfficialNutrition {
@@ -20,7 +23,14 @@ function parseNum(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export async function lookupOfficialNutrition(foodName: string): Promise<OfficialNutrition | null> {
+export function lookupOfficialNutrition(foodName: string): Promise<OfficialNutrition | null> {
+  return cached(`food-nutrition:${foodName}`, () => fetchOfficialNutrition(foodName), {
+    successTtlMs: 24 * 60 * 60 * 1000,
+    failureTtlMs: 60 * 1000,
+  });
+}
+
+async function fetchOfficialNutrition(foodName: string): Promise<OfficialNutrition | null> {
   const apiKey = process.env.FOOD_SAFETY_API_KEY;
   if (!apiKey) return null;
 
@@ -33,7 +43,7 @@ export async function lookupOfficialNutrition(foodName: string): Promise<Officia
   });
 
   try {
-    const response = await fetch(`${API_URL}?${params.toString()}`);
+    const response = await fetchWithTimeout(`${API_URL}?${params.toString()}`);
     const bodyText = await response.text();
 
     if (!response.ok) {

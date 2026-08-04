@@ -1,9 +1,11 @@
 import { getJejuWellnessSpots } from "../_lib/wellnessTourApi.js";
+import { rejectIfRateLimited } from "../_lib/rateLimit.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+  if (rejectIfRateLimited(req, res, "tourism-wellness", 30)) return;
 
   try {
     const spots = await getJejuWellnessSpots();

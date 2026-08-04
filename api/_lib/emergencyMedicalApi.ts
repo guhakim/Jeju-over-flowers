@@ -3,6 +3,9 @@
 // 식품영양DB와 동일한 FOOD_SAFETY_API_KEY 값을 재사용합니다.
 // 참고문서(NIA-IFT-OpenAPI활용가이드-01.국립중앙의료원-응급의료정보조회서비스)로 검증된 필드 매핑.
 
+import { cached } from "./cache.js";
+import { fetchWithTimeout } from "./httpUtils.js";
+
 const API_URL = "https://apis.data.go.kr/B552657/ErmctInfoInqireService/getEgytListInfoInqire";
 
 export interface EmergencyHospital {
@@ -27,7 +30,14 @@ function parseXmlItems(xml: string): Record<string, string>[] {
   return items;
 }
 
-export async function getJejuEmergencyHospitals(): Promise<EmergencyHospital[] | null> {
+export function getJejuEmergencyHospitals(): Promise<EmergencyHospital[] | null> {
+  return cached("emergency-hospitals:jeju", fetchJejuEmergencyHospitals, {
+    successTtlMs: 30 * 60 * 1000,
+    failureTtlMs: 30 * 1000,
+  });
+}
+
+async function fetchJejuEmergencyHospitals(): Promise<EmergencyHospital[] | null> {
   const apiKey = process.env.FOOD_SAFETY_API_KEY;
   if (!apiKey) return null;
 
@@ -39,7 +49,7 @@ export async function getJejuEmergencyHospitals(): Promise<EmergencyHospital[] |
   });
 
   try {
-    const response = await fetch(`${API_URL}?${params.toString()}`);
+    const response = await fetchWithTimeout(`${API_URL}?${params.toString()}`);
     const xmlText = await response.text();
 
     if (!response.ok) {

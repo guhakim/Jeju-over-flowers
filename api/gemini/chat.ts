@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { rejectIfRateLimited } from "../_lib/rateLimit.js";
 
 let aiClient: GoogleGenAI | null = null;
 
@@ -20,6 +21,7 @@ export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+  if (rejectIfRateLimited(req, res, "gemini-chat", 15)) return;
 
   try {
     const { message, history, conditions } = req.body;

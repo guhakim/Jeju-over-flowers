@@ -1,9 +1,11 @@
 import { getJejuBarrierFreeSpots } from "../_lib/jejuDataHub.js";
+import { rejectIfRateLimited } from "../_lib/rateLimit.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+  if (rejectIfRateLimited(req, res, "tourism-barrier-free", 30)) return;
 
   try {
     const spots = await getJejuBarrierFreeSpots();

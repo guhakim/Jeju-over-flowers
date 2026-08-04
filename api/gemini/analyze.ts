@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "../_lib/foodNutritionApi.js";
+import { rejectIfRateLimited } from "../_lib/rateLimit.js";
 
 let aiClient: GoogleGenAI | null = null;
 
@@ -21,6 +22,7 @@ export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+  if (rejectIfRateLimited(req, res, "gemini-analyze", 15)) return;
 
   try {
     const { foodName, conditions } = req.body;
@@ -42,7 +44,8 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
 - 위험도 라벨은 '매우 위험', '위험', '주의', '안전' 중 하나로 설정하세요.
 - 사용자가 기입한 건강 요인(예: 당뇨, 고혈압)에 따라 영양소 분석(탄수화물, 나트륨, 당류)을 맞춤으로 수치화하고 직관적으로 설명해 주세요. (예: "78g (높음)", "2,300mg (위험)")
 - AI 건강 추천(aiRecommendation)에는 사용자가 안전하게 이 음식을 먹을 수 있는 요령(예: "면은 절반만 먹고 국물은 남기기", "채소를 먼저 충분히 섭취")을 포함하세요.
-- '더 건강한 선택(alternative)' 필드에는 제주 향토음식 중 이 요인들을 지닌 사용자에게 아주 안전하고 건강하게 대체할 수 있는 대표 음식을 하나 선정하고, 구체적인 추천 사유를 작성하세요. (예: "제주 돔베고기", "신선한 채소쌈과 함께 수육을 드시는 것이 나트륨과 탄수화물을 획기적으로 줄이는 방법입니다.")`;
+- '더 건강한 선택(alternative)' 필드에는 제주 향토음식 중 이 요인들을 지닌 사용자에게 아주 안전하고 건강하게 대체할 수 있는 대표 음식을 하나 선정하고, 구체적인 추천 사유를 작성하세요. (예: "제주 돔베고기", "신선한 채소쌈과 함께 수육을 드시는 것이 나트륨과 탄수화물을 획기적으로 줄이는 방법입니다.")
+- 입력된 "음식 이름"이 구체적인 음식/메뉴명이 아니라 식당·카페 등 장소(상호) 이름으로 보이는 경우, isVenueNameGuess를 true로 설정하고 상호명에서 유추한 대표 메뉴로 분석하되, aiRecommendation 맨 앞에 "실제 판매 메뉴는 방문 전 식당에 확인이 필요합니다"라는 안내를 반드시 포함하세요. 명확한 음식/메뉴명이면 isVenueNameGuess를 false로 설정하세요.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
@@ -54,6 +57,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
           type: Type.OBJECT,
           properties: {
             foodName: { type: Type.STRING },
+            isVenueNameGuess: { type: Type.BOOLEAN, description: "입력값이 구체적 음식명이 아니라 식당/장소명으로 보여 AI가 대표 메뉴를 추정한 경우 true, 명확한 음식명이면 false" },
             riskScoreDiabetes: { type: Type.NUMBER, description: "당뇨 위험 점수 (1.0~5.0)" },
             riskLabelDiabetes: { type: Type.STRING, description: "당뇨 위험 라벨 ('매우 위험', '위험', '주의', '안전')" },
             riskScoreHypertension: { type: Type.NUMBER, description: "고혈압 위험 점수 (1.0~5.0)" },
@@ -87,7 +91,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
             }
           },
           required: [
-            "foodName", "riskScoreDiabetes", "riskLabelDiabetes", "riskScoreHypertension", "riskLabelHypertension",
+            "foodName", "isVenueNameGuess", "riskScoreDiabetes", "riskLabelDiabetes", "riskScoreHypertension", "riskLabelHypertension",
             "riskScoreKidney", "riskLabelKidney", "riskScoreAllergy", "riskLabelAllergy", "riskScoreVegan", "riskLabelVegan",
             "aiRecommendation", "nutrition", "alternative"
           ]

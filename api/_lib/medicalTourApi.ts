@@ -4,6 +4,9 @@
 // Swagger 명세(areaBasedList)로 검증된 필드 매핑. langDivCd는 KOR을 지원하지 않아 ENG로 조회 후
 // 응답 제목에 포함된 국문명("영문명 (국문명)")을 파싱해서 사용합니다.
 
+import { cached } from "./cache.js";
+import { fetchWithTimeout } from "./httpUtils.js";
+
 const API_URL = "https://apis.data.go.kr/B551011/MdclTursmService/areaBasedList";
 
 const JEJU_REGION_CODE = "50"; // 법정동 시도코드: 제주특별자치도
@@ -42,7 +45,14 @@ function extractKoreanName(title: string): string {
   return trimmed;
 }
 
-export async function getJejuMedicalTourismSpots(): Promise<MedicalTourismSpot[] | null> {
+export function getJejuMedicalTourismSpots(): Promise<MedicalTourismSpot[] | null> {
+  return cached("medical-tourism-spots:jeju", fetchJejuMedicalTourismSpots, {
+    successTtlMs: 60 * 60 * 1000,
+    failureTtlMs: 60 * 1000,
+  });
+}
+
+async function fetchJejuMedicalTourismSpots(): Promise<MedicalTourismSpot[] | null> {
   const apiKey = process.env.TOUR_API_KEY;
   if (!apiKey) return null;
 
@@ -59,7 +69,7 @@ export async function getJejuMedicalTourismSpots(): Promise<MedicalTourismSpot[]
   });
 
   try {
-    const response = await fetch(`${API_URL}?${params.toString()}`);
+    const response = await fetchWithTimeout(`${API_URL}?${params.toString()}`);
     const bodyText = await response.text();
 
     if (!response.ok) {

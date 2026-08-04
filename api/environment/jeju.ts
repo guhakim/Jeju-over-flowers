@@ -1,9 +1,11 @@
 import { getJejuAirQuality, getJejuUvIndex } from "../_lib/weatherApi.js";
+import { rejectIfRateLimited } from "../_lib/rateLimit.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+  if (rejectIfRateLimited(req, res, "environment-jeju", 30)) return;
 
   try {
     const [airQuality, uvIndex] = await Promise.all([getJejuAirQuality(), getJejuUvIndex()]);

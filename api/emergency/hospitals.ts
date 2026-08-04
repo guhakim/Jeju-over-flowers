@@ -1,9 +1,11 @@
 import { getJejuEmergencyHospitals } from "../_lib/emergencyMedicalApi.js";
+import { rejectIfRateLimited } from "../_lib/rateLimit.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+  if (rejectIfRateLimited(req, res, "emergency-hospitals", 30)) return;
 
   try {
     const hospitals = await getJejuEmergencyHospitals();

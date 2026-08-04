@@ -2,6 +2,9 @@
 // 기상청 생활기상지수(자외선지수) 조회서비스(3.0) (데이터셋 15085288)
 // data.go.kr 계정당 서비스키가 1개라 FOOD_SAFETY_API_KEY 값을 재사용합니다.
 
+import { cached } from "./cache.js";
+import { fetchWithTimeout } from "./httpUtils.js";
+
 const AIR_API_URL = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty";
 const UV_API_URL = "https://apis.data.go.kr/1360000/LivingWthrIdxServiceV5/getUVIdxV5";
 const JEJU_CITY_AREA_NO = "5011000000"; // 제주특별자치도 제주시
@@ -42,7 +45,14 @@ const KHAI_GRADE_LABELS: Record<string, AirQuality["grade"]> = {
   "4": "매우나쁨",
 };
 
-export async function getJejuAirQuality(): Promise<AirQuality | null> {
+export function getJejuAirQuality(): Promise<AirQuality | null> {
+  return cached("air-quality:jeju", fetchJejuAirQuality, {
+    successTtlMs: 10 * 60 * 1000,
+    failureTtlMs: 30 * 1000,
+  });
+}
+
+async function fetchJejuAirQuality(): Promise<AirQuality | null> {
   const apiKey = process.env.FOOD_SAFETY_API_KEY;
   if (!apiKey) return null;
 
@@ -56,7 +66,7 @@ export async function getJejuAirQuality(): Promise<AirQuality | null> {
   });
 
   try {
-    const response = await fetch(`${AIR_API_URL}?${params.toString()}`);
+    const response = await fetchWithTimeout(`${AIR_API_URL}?${params.toString()}`);
     const bodyText = await response.text();
 
     if (!response.ok) {
@@ -122,7 +132,7 @@ async function fetchUvForIssuance(apiKey: string, time: string): Promise<{ nowSt
     numOfRows: "10",
   });
 
-  const response = await fetch(`${UV_API_URL}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${UV_API_URL}?${params.toString()}`);
   const bodyText = await response.text();
   if (!response.ok) {
     console.error("KMA UV API HTTP error:", response.status, bodyText.slice(0, 500));
@@ -135,7 +145,14 @@ async function fetchUvForIssuance(apiKey: string, time: string): Promise<{ nowSt
   return item ? { nowStep: 0, item } : null;
 }
 
-export async function getJejuUvIndex(): Promise<UvIndex | null> {
+export function getJejuUvIndex(): Promise<UvIndex | null> {
+  return cached("uv-index:jeju", fetchJejuUvIndex, {
+    successTtlMs: 30 * 60 * 1000,
+    failureTtlMs: 30 * 1000,
+  });
+}
+
+async function fetchJejuUvIndex(): Promise<UvIndex | null> {
   const apiKey = process.env.FOOD_SAFETY_API_KEY;
   if (!apiKey) return null;
 

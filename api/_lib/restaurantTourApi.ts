@@ -3,6 +3,9 @@
 // TOUR_API_KEY 환경변수로 설정 (웰니스/의료관광정보와 동일 서비스 그룹, 같은 키 사용).
 // contentTypeId=39(음식점) 카테고리로 조회. 실측 응답 필드로 검증된 매핑 사용.
 
+import { cached } from "./cache.js";
+import { fetchWithTimeout } from "./httpUtils.js";
+
 const API_URL = "https://apis.data.go.kr/B551011/KorService2/areaBasedList2";
 
 const JEJU_AREA_CODE = "39"; // KorService 지역코드: 제주
@@ -22,7 +25,14 @@ function toItemList(items: any): any[] {
   return [];
 }
 
-export async function getJejuRestaurants(): Promise<RestaurantSpot[] | null> {
+export function getJejuRestaurants(): Promise<RestaurantSpot[] | null> {
+  return cached("restaurants:jeju", fetchJejuRestaurants, {
+    successTtlMs: 60 * 60 * 1000,
+    failureTtlMs: 60 * 1000,
+  });
+}
+
+async function fetchJejuRestaurants(): Promise<RestaurantSpot[] | null> {
   const apiKey = process.env.TOUR_API_KEY;
   if (!apiKey) return null;
 
@@ -39,7 +49,7 @@ export async function getJejuRestaurants(): Promise<RestaurantSpot[] | null> {
   });
 
   try {
-    const response = await fetch(`${API_URL}?${params.toString()}`);
+    const response = await fetchWithTimeout(`${API_URL}?${params.toString()}`);
     const bodyText = await response.text();
 
     if (!response.ok) {

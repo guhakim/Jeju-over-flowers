@@ -12,7 +12,8 @@ import {
   Map,
   BookOpen,
   Apple,
-  Flower
+  Flower,
+  AlertTriangle
 } from "lucide-react";
 import { NutritionAnalysis } from "../types";
 import { getDefaultAnalysis } from "../data";
@@ -189,6 +190,20 @@ export default function FoodAnalysisScreen({
                 </div>
               </div>
             </motion.section>
+
+            {/* Venue-Name-Guess Warning */}
+            {analysis.isVenueNameGuess && (
+              <motion.section
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 items-start"
+              >
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs sm:text-sm text-amber-900 font-bold leading-relaxed">
+                  "{analysis.foodName}"은(는) 특정 메뉴명이 아닌 식당/장소 이름으로 보여, AI가 이름을 근거로 대표 메뉴를 추정해 분석했습니다. 실제 판매 메뉴와 다를 수 있으니 방문 전 식당에 꼭 확인해 주세요.
+                </p>
+              </motion.section>
+            )}
 
             {/* Risk Score Bento Grid */}
             <section className="grid grid-cols-2 gap-4">

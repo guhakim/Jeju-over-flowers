@@ -2,6 +2,9 @@
 // https://www.data.go.kr/data/15144030/openapi.do 에서 활용신청 후 발급받은 서비스키를
 // TOUR_API_KEY 환경변수로 설정. Swagger 명세(areaBasedList)로 검증된 필드 매핑.
 
+import { cached } from "./cache.js";
+import { fetchWithTimeout } from "./httpUtils.js";
+
 const API_URL = "https://apis.data.go.kr/B551011/WellnessTursmService/areaBasedList";
 
 const JEJU_REGION_CODE = "50"; // 법정동 시도코드: 제주특별자치도
@@ -31,7 +34,14 @@ function toItemList(items: any): any[] {
   return [];
 }
 
-export async function getJejuWellnessSpots(): Promise<WellnessSpot[] | null> {
+export function getJejuWellnessSpots(): Promise<WellnessSpot[] | null> {
+  return cached("wellness-spots:jeju", fetchJejuWellnessSpots, {
+    successTtlMs: 60 * 60 * 1000,
+    failureTtlMs: 60 * 1000,
+  });
+}
+
+async function fetchJejuWellnessSpots(): Promise<WellnessSpot[] | null> {
   const apiKey = process.env.TOUR_API_KEY;
   if (!apiKey) return null;
 
@@ -48,7 +58,7 @@ export async function getJejuWellnessSpots(): Promise<WellnessSpot[] | null> {
   });
 
   try {
-    const response = await fetch(`${API_URL}?${params.toString()}`);
+    const response = await fetchWithTimeout(`${API_URL}?${params.toString()}`);
     const bodyText = await response.text();
 
     if (!response.ok) {

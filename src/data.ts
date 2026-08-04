@@ -103,6 +103,7 @@ const DEFAULT_ANALYSIS_MAP: Record<string, NutritionAnalysis> = {
   "고기국수": {
     foodName: "고기국수",
     isOfficialData: false,
+    isVenueNameGuess: false,
     riskScoreDiabetes: 4.0,
     riskLabelDiabetes: "위험",
     riskScoreHypertension: 5.0,
@@ -130,6 +131,7 @@ const DEFAULT_ANALYSIS_MAP: Record<string, NutritionAnalysis> = {
   "제주 흑돼지": {
     foodName: "제주 흑돼지",
     isOfficialData: false,
+    isVenueNameGuess: false,
     riskScoreDiabetes: 1.5,
     riskLabelDiabetes: "안전",
     riskScoreHypertension: 2.0,
@@ -157,6 +159,7 @@ const DEFAULT_ANALYSIS_MAP: Record<string, NutritionAnalysis> = {
   "전복죽": {
     foodName: "전복죽",
     isOfficialData: false,
+    isVenueNameGuess: false,
     riskScoreDiabetes: 2.5,
     riskLabelDiabetes: "주의",
     riskScoreHypertension: 1.8,
@@ -184,6 +187,7 @@ const DEFAULT_ANALYSIS_MAP: Record<string, NutritionAnalysis> = {
   "옥돔 구이": {
     foodName: "옥돔 구이",
     isOfficialData: false,
+    isVenueNameGuess: false,
     riskScoreDiabetes: 1.2,
     riskLabelDiabetes: "안전",
     riskScoreHypertension: 3.0,
@@ -223,6 +227,7 @@ export function getDefaultAnalysis(foodName: string): NutritionAnalysis {
   return {
     foodName: foodName,
     isOfficialData: false,
+    isVenueNameGuess: false,
     riskScoreDiabetes: 3.0,
     riskLabelDiabetes: "주의",
     riskScoreHypertension: 3.0,
