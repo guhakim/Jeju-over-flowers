@@ -88,8 +88,9 @@ export default function FoodAnalysisScreen({
     return { text: "text-[#006d3d]", bg: "bg-[#97f3b5]/40", border: "border-[#006d3d]" };
   };
 
-  // Get image for current analyzed food
-  const getFoodImage = (name: string) => {
+  // Get image for current analyzed food. 큐레이션된 3개 향토음식 외에는 무관한 사진을
+  // 보여주는 대신 null을 반환해서 정직한 플레이스홀더를 표시한다.
+  const getFoodImage = (name: string): string | null => {
     if (name.includes("국수") || name.includes("Noodles")) {
       return "https://lh3.googleusercontent.com/aida-public/AB6AXuC3OAO_CxaVJ3VR2qNEX7InneICEOPXMyTAlmDkMtoYXp68-wJjc_Zb4eCwHDyYdhy9PKvffYVASoQRpF_6VhF9EFCLjYMcnDFv6nT4gW7zA0mVO2zoZh5er4Ntm4KhCbomasayo9jo9XabzBbIalNYe1O1FfxpvyuhvbGmn6vske9upvmsRPfg281QDphjaJXTxbbVRK9dZijRxczgScERQAY1DrPKBJQtZ-FgcgvqDTKoGPTsolE9b_G1QrIDbr8n1c7eTY8B3a8c";
     }
@@ -99,11 +100,7 @@ export default function FoodAnalysisScreen({
     if (name.includes("전복죽") || name.includes("Porridge")) {
       return "https://lh3.googleusercontent.com/aida-public/AB6AXuAcHjS51V5YuPdDvFKq2DbP7ZmFr-Gjh2Be4WsxOBp6F-V_Fv1oC2UxAp0RAAlg_Qs4vuApo24EsbqMTYpWIPdZF_tgNDctySYzP5yaCQ60qsxKc53nIZXBS0zS9pIN6Pvfe5_TPKfx-mlzkZ3LfGoUJnAt-E6ayv2ww0SqyDrCaQaTphbj6m29aZ89NURo1Gy8FK6CQRuISQREGqUO0ZZoC3jb1HmgCiDwZIuWmsYN7qsuL_zSd6zlkQcjSKHNszmbgNxleXQ5282b";
     }
-    return "https://lh3.googleusercontent.com/aida-public/AB6AXuBUfZ3rY4ZGub0JE4NdcgMkirSOtHlXgHYYKSOZINrC4x3RpAvrPtBzI44aZ_q-EF7pTBa0uTCp170b4L1h5vHBd7NW0EQSdrU6FEvEUXJujAIMFuSFBLWTsnDHw0B2rARxKNX6PqpaCj8ow6Bu15K3G_CGc40Rf5s4F46FlVQriuoP6SrX0--qY3ppaq9tk6e8DdzPoQyzAB4b904VOmC4pttpL_zT6ISgcGxuchL6DLQoSTxaJZDRCFhawifKoYwPn3d5BNLH80gH";
-  };
-
-  const getAlternativeImage = (name: string) => {
-    return "https://lh3.googleusercontent.com/aida-public/AB6AXuDGEAba7pxmNos8SBJ2WLNGfJZAJ3groeMyPe0YQfoCOHWVuIq6j1spqdGb5trbO42clG2RUFfbT-HtAgPCegoBj9MDwiAD91oyb7bdFr7_6uNGTRFOhkDRXVgB4n9c0MeRtHR3MaQp7p90CjHHAQSFyxJP_59ap0EFs71WLm6MwwVzfi5usQoijVtXYRo_rSXKFVRI681tQmgpq-npWhdVLcvmn4rCjJAAINRZ8rIpZKuO1zcpx2_pfZCOlA0RXwuptIz5tJ1UiQ0R";
+    return null;
   };
 
   const isDiabetes = selectedConditions.includes("diabetes");
@@ -164,12 +161,18 @@ export default function FoodAnalysisScreen({
               animate={{ opacity: 1, scale: 1 }}
             >
               <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-3xl overflow-hidden shadow-sm border border-[#eae8e3]">
-                <img 
-                  src={getFoodImage(analysis.foodName)} 
-                  alt={analysis.foodName} 
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                />
+                {getFoodImage(analysis.foodName) ? (
+                  <img
+                    src={getFoodImage(analysis.foodName)!}
+                    alt={analysis.foodName}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#eefcfd] to-[#f4f3ef] flex items-center justify-center">
+                    <Apple className="w-16 h-16 text-[#006067]/20" />
+                  </div>
+                )}
                 <div className="absolute top-4 right-4">
                   {analysis.isOfficialData ? (
                     <span className="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-xs text-emerald-800 border border-emerald-200/50 px-3.5 py-1.5 rounded-xl text-[10px] font-extrabold shadow-sm">
@@ -186,7 +189,11 @@ export default function FoodAnalysisScreen({
                 <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col justify-end">
                   <span className="text-[10px] text-[#ffeaa7] font-extrabold tracking-widest uppercase block mb-1">JEJU WELLNESS DIET</span>
                   <h2 className="text-white font-display text-2xl md:text-3xl font-extrabold tracking-tight">{analysis.foodName}</h2>
-                  <p className="text-white/80 text-xs font-bold mt-1.5">신선한 제주 로컬 식재료로 엄선된 향토 밥상</p>
+                  <p className="text-white/80 text-xs font-bold mt-1.5">
+                    {getFoodImage(analysis.foodName)
+                      ? "신선한 제주 로컬 식재료로 엄선된 향토 밥상"
+                      : "AI가 건강 조건에 맞춰 분석한 맞춤 영양 정보"}
+                  </p>
                 </div>
               </div>
             </motion.section>
@@ -328,12 +335,18 @@ export default function FoodAnalysisScreen({
               </div>
               <div className="flex gap-5 items-start">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 border border-[#eae8e3] shadow-xs">
-                  <img 
-                    src={getAlternativeImage(analysis.alternative.name)} 
-                    alt={analysis.alternative.name} 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
+                  {getFoodImage(analysis.alternative.name) ? (
+                    <img
+                      src={getFoodImage(analysis.alternative.name)!}
+                      alt={analysis.alternative.name}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#eefcfd] to-[#f4f3ef] flex items-center justify-center">
+                      <Apple className="w-8 h-8 text-[#006067]/20" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h4 className="font-display font-extrabold text-base text-[#1b1c19] mb-1">
