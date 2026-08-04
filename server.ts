@@ -7,8 +7,11 @@ import { lookupOfficialNutrition, formatOfficialNutritionForPrompt } from "./api
 import { getJejuEmergencyHospitals } from "./api/_lib/emergencyMedicalApi";
 import { getJejuAirQuality, getJejuUvIndex } from "./api/_lib/weatherApi";
 import { getJejuBarrierFreeSpots } from "./api/_lib/jejuDataHub";
+import { getJejuWellnessSpots } from "./api/_lib/wellnessTourApi";
+import { getJejuMedicalTourismSpots } from "./api/_lib/medicalTourApi";
+import { getJejuRestaurants } from "./api/_lib/restaurantTourApi";
 
-dotenv.config();
+dotenv.config({ path: [".env.local", ".env"] });
 
 async function startServer() {
   const app = express();
@@ -195,7 +198,40 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 6. Vite or Static Files setup
+  // 6. Wellness Tourism Spots Endpoint (한국관광공사 TourAPI)
+  app.get("/api/tourism/wellness", async (_req, res) => {
+    try {
+      const spots = await getJejuWellnessSpots();
+      res.json({ spots: spots ?? [] });
+    } catch (error: any) {
+      console.error("Wellness Spots Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch wellness spots." });
+    }
+  });
+
+  // 7. Medical Tourism Spots Endpoint (한국관광공사 TourAPI)
+  app.get("/api/tourism/medical", async (_req, res) => {
+    try {
+      const spots = await getJejuMedicalTourismSpots();
+      res.json({ spots: spots ?? [] });
+    } catch (error: any) {
+      console.error("Medical Tourism Spots Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch medical tourism spots." });
+    }
+  });
+
+  // 8. Restaurant Spots Endpoint (한국관광공사 TourAPI, 음식점 카테고리)
+  app.get("/api/tourism/restaurants", async (_req, res) => {
+    try {
+      const spots = await getJejuRestaurants();
+      res.json({ spots: spots ?? [] });
+    } catch (error: any) {
+      console.error("Restaurant Spots Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch restaurant spots." });
+    }
+  });
+
+  // 9. Vite or Static Files setup
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

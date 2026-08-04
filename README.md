@@ -6,6 +6,9 @@
 
 - **건강 프로필 설정**: 당뇨, 고혈압, 신장 질환, 알레르기, 비건 등 건강 요인/관심사를 선택
 - **웰니스 여행 코스 추천**: 선택한 건강 요인에 맞춘 제주 여행 일정 제안, 실시간 대기질·자외선지수 표시
+- **근처 웰니스 명소 추천**: 한국관광공사 웰니스관광정보 API로 힐링·스파·자연치유 등 실제 제주 웰니스 명소를 실시간 조회
+- **의료관광 지정기관 안내**: 한국관광공사 의료관광정보 API로 제주 지역 의료관광 지정 병원·의원 목록을 실시간 조회
+- **제주 실시간 맛집 안내**: 한국관광공사 국문 관광정보 서비스(음식점 카테고리)로 실제 제주 식당 목록을 조회, 탭하면 바로 아래 향토 음식 영양 분석으로 연결
 - **향토 음식 영양 분석**: 식약처 식품영양성분DB로 실측 영양치를 조회하고, Gemini AI가 그 데이터를 근거로 위험도 점수(당뇨/고혈압/신장/알레르기/비건)와 안전하게 먹는 요령·대체 음식을 제안 (근거 데이터가 없을 땐 AI 추정치로 자동 대체)
 - **실시간 응급의료 안내**: 국립중앙의료원 응급의료정보(E-Gen)로 제주 권역 응급의료기관 목록을 실시간 조회
 - **인증된 무장애 여행지**: 제주데이터허브의 무장애 여행지 정보를 연동해 이동약자를 위한 실제 인증 장소를 안내
@@ -31,17 +34,23 @@ api/
     jeju.ts                    제주 대기질·자외선지수 (Vercel 서버리스)
   tourism/
     barrier-free.ts             제주 무장애 여행지 목록 (Vercel 서버리스)
+    wellness.ts                  제주 웰니스관광정보 목록 (Vercel 서버리스)
+    medical.ts                   제주 의료관광정보 목록 (Vercel 서버리스)
+    restaurants.ts                제주 실시간 맛집 목록 (Vercel 서버리스)
   _lib/                        공공데이터 API 연동 로직 (server.ts와 api/*.ts가 공유, "_" 접두사로 라우팅 제외)
     foodNutritionApi.ts        식약처 식품영양성분DB
     emergencyMedicalApi.ts     국립중앙의료원 E-Gen 응급의료정보
     weatherApi.ts               한국환경공단 에어코리아 + 기상청 생활기상지수
     jejuDataHub.ts               제주데이터허브 무장애 여행지 정보
+    wellnessTourApi.ts           한국관광공사 웰니스관광정보(TourAPI)
+    medicalTourApi.ts            한국관광공사 의료관광정보(TourAPI)
+    restaurantTourApi.ts         한국관광공사 국문 관광정보 서비스(TourAPI, 음식점 카테고리)
 src/
   App.tsx                     화면 라우팅 (welcome → home → route/food-analysis)
   components/
     WelcomeScreen.tsx          건강 프로필 선택 화면
-    DashboardScreen.tsx        홈 대시보드 (실시간 응급의료기관 포함)
-    WellnessRouteScreen.tsx    웰니스 여행 코스 화면 (실시간 대기질·자외선·무장애 여행지 포함)
+    DashboardScreen.tsx        홈 대시보드 (실시간 응급의료기관·제주 실시간 맛집 포함)
+    WellnessRouteScreen.tsx    웰니스 여행 코스 화면 (실시간 대기질·자외선·무장애 여행지·웰니스 명소·의료관광 지정기관 포함)
     FoodAnalysisScreen.tsx     음식 영양/위험도 분석 화면 (공식 데이터 여부 배지 포함)
     ChatModal.tsx              AI 웰니스 챗봇 모달
   data.ts                      목업 데이터 및 API 실패 시 오프라인 fallback
@@ -61,8 +70,11 @@ src/
 | 대기오염정보 | 한국환경공단 에어코리아 (data.go.kr) | `apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty` | 고정 문구 "PM2.5 8 µg/m³" |
 | 생활기상지수(자외선) | 기상청 (data.go.kr) | `apis.data.go.kr/1360000/LivingWthrIdxServiceV5/getUVIdxV5` | 고정 문구 "자외선 자극지수 보통" |
 | 무장애 여행지 정보 | 제주특별자치도 (제주데이터허브) | `jejudatahub.net/api/data/view?id=858` | 서사형 목업 코스 설명 |
+| 웰니스관광정보 | 한국관광공사 (data.go.kr) | `apis.data.go.kr/B551011/WellnessTursmService/areaBasedList` | 하드코딩된 웰니스 명소 3곳 목록 |
+| 의료관광정보 | 한국관광공사 (data.go.kr) | `apis.data.go.kr/B551011/MdclTursmService/areaBasedList` | 하드코딩된 의료관광 지정기관 3곳 목록 |
+| 국문 관광정보 서비스(음식점) | 한국관광공사 (data.go.kr) | `apis.data.go.kr/B551011/KorService2/areaBasedList2` | 하드코딩된 맛집 3곳 목록 |
 
-식품영양성분DB/응급의료기관/대기질/자외선 4개는 data.go.kr 활용신청으로 발급받은 **동일 계정 서비스키**(`FOOD_SAFETY_API_KEY`)를 공유합니다 — data.go.kr은 계정당 서비스키를 1개만 발급하기 때문입니다. 무장애 여행지 정보는 별도 인증키 없이 공개 조회됩니다.
+식품영양성분DB/응급의료기관/대기질/자외선 4개는 data.go.kr 활용신청으로 발급받은 **동일 계정 서비스키**(`FOOD_SAFETY_API_KEY`)를 공유합니다 — data.go.kr은 계정당 서비스키를 1개만 발급하기 때문입니다. 무장애 여행지 정보는 별도 인증키 없이 공개 조회됩니다. 웰니스관광정보/의료관광정보/국문 관광정보 서비스는 한국관광공사가 별도 발급하는 서비스키(`TOUR_API_KEY`)를 공유합니다 — 단, data.go.kr에서 데이터셋별로 별도 활용신청·승인이 필요합니다. 의료관광정보 API는 `langDivCd`에 `KOR`을 지원하지 않아 `ENG`로 조회한 뒤 응답 제목의 국문명("영문명 (국문명)")을 파싱해서 사용합니다.
 
 ## 로컬 실행
 
@@ -72,7 +84,7 @@ src/
    ```
    npm install
    ```
-2. `.env.example`을 참고해 `.env.local` 파일을 만들고 `GEMINI_API_KEY`(필수)와 `FOOD_SAFETY_API_KEY`(선택, 미설정 시 해당 기능들은 오프라인 목업으로 동작)를 입력
+2. `.env.example`을 참고해 `.env.local` 파일을 만들고 `GEMINI_API_KEY`(필수)와 `FOOD_SAFETY_API_KEY`·`TOUR_API_KEY`(선택, 미설정 시 해당 기능들은 오프라인 목업으로 동작)를 입력
 3. 개발 서버 실행
    ```
    npm run dev
@@ -95,6 +107,7 @@ npm start        # 프로덕션 서버 실행 (dist/server.cjs)
 ```
 npx vercel env add GEMINI_API_KEY production        # 최초 1회
 npx vercel env add FOOD_SAFETY_API_KEY production   # 최초 1회
+npx vercel env add TOUR_API_KEY production           # 최초 1회
 npx vercel deploy --prod                             # 수동 배포가 필요할 때
 ```
 
@@ -105,3 +118,4 @@ npx vercel deploy --prod                             # 수동 배포가 필요�
 | `GEMINI_API_KEY` | Gemini API 호출에 사용되는 API 키 |
 | `APP_URL` | 앱이 호스팅되는 URL (자체 참조 링크 등에 사용) |
 | `FOOD_SAFETY_API_KEY` | data.go.kr 계정 서비스키. [공공데이터 연동](#공공데이터-연동)의 4개 API가 공유 (미설정 시 각각 오프라인 목업으로 동작) |
+| `TOUR_API_KEY` | 한국관광공사 웰니스관광정보 서비스키 (미설정 시 오프라인 목업으로 동작) |

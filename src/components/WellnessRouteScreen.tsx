@@ -1,21 +1,23 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { 
-  ArrowLeft, 
-  User, 
-  ShieldCheck, 
-  Wind, 
-  Sun, 
-  HeartPulse, 
-  Activity, 
-  Bookmark, 
-  Share2, 
+import {
+  ArrowLeft,
+  User,
+  ShieldCheck,
+  Wind,
+  Sun,
+  HeartPulse,
+  Activity,
+  Bookmark,
+  Share2,
   Clock,
   Home,
   Map,
   BookOpen,
   Flower,
-  MapPin
+  MapPin,
+  Sparkles,
+  Stethoscope
 } from "lucide-react";
 import { WELLNESS_ITINERARY } from "../data";
 
@@ -33,6 +35,20 @@ const FALLBACK_BARRIER_FREE_SPOTS = [
   { name: "칠십리시공원", address: "서귀포시 서홍동 571-3" },
   { name: "제주현대미술관", address: "제주시 한경면 저지리 2114-68" },
   { name: "함덕서우봉해변", address: "제주시 조천읍 함덕리 산 1" },
+];
+
+// 한국관광공사 웰니스관광정보 API 응답을 못 받을 때 쓰는 오프라인 대체 목록
+const FALLBACK_WELLNESS_SPOTS = [
+  { contentId: "fallback-1", title: "서귀포 치유의 숲", address: "서귀포시 산록남로 2271", theme: "자연 치유", imageUrl: null },
+  { contentId: "fallback-2", title: "오레브핫스프링앤스파", address: "서귀포시 태평로 152", theme: "온천·사우나·스파", imageUrl: null },
+  { contentId: "fallback-3", title: "석예원 본초 족욕", address: "서귀포시 성산읍 섭지코지로25번길 34", theme: "기타 웰니스", imageUrl: null },
+];
+
+// 한국관광공사 의료관광정보 API 응답을 못 받을 때 쓰는 오프라인 대체 목록
+const FALLBACK_MEDICAL_SPOTS = [
+  { contentId: "fallback-1", name: "제주대학교병원", address: "제주시 아란13길 15" },
+  { contentId: "fallback-2", name: "의료법인 혜인의료재단 한국병원", address: "제주시 서광로 193" },
+  { contentId: "fallback-3", name: "한국의학연구소 제주의원", address: "서귀포시 소로름로 61" },
 ];
 
 const UV_HINTS: Record<string, string> = {
@@ -57,6 +73,8 @@ export default function WellnessRouteScreen({
   const [isSaved, setIsSaved] = useState(false);
   const [environment, setEnvironment] = useState(FALLBACK_ENVIRONMENT);
   const [barrierFreeSpots, setBarrierFreeSpots] = useState(FALLBACK_BARRIER_FREE_SPOTS);
+  const [wellnessSpots, setWellnessSpots] = useState(FALLBACK_WELLNESS_SPOTS);
+  const [medicalSpots, setMedicalSpots] = useState(FALLBACK_MEDICAL_SPOTS);
 
   const handleSaveToggle = () => {
     setIsSaved(!isSaved);
@@ -97,6 +115,40 @@ export default function WellnessRouteScreen({
       })
       .catch(() => {
         console.warn("Using offline static fallback for barrier-free spots");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/tourism/wellness")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.spots?.length > 0) {
+          setWellnessSpots(data.spots.slice(0, 8));
+        }
+      })
+      .catch(() => {
+        console.warn("Using offline static fallback for wellness spots");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/tourism/medical")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.spots?.length > 0) {
+          setMedicalSpots(data.spots.slice(0, 8));
+        }
+      })
+      .catch(() => {
+        console.warn("Using offline static fallback for medical tourism spots");
       });
     return () => {
       active = false;
@@ -328,6 +380,62 @@ export default function WellnessRouteScreen({
                 className="min-w-[220px] bg-white p-4 rounded-2xl shadow-sm border border-[#eae8e3] flex items-start gap-2.5 shrink-0"
               >
                 <MapPin className="w-4 h-4 text-[#006067] shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-display font-extrabold text-sm text-[#1b1c19]">{spot.name}</p>
+                  <p className="text-[11px] text-[#5c6869] font-semibold mt-0.5">{spot.address}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Wellness Tourism Spots (한국관광공사 웰니스관광정보 API) */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-500" />
+            <div>
+              <h3 className="font-display font-extrabold text-2xl text-[#1b1c19] tracking-tight">근처 웰니스 명소</h3>
+              <p className="text-xs text-[#5c6869] font-bold mt-1">한국관광공사 웰니스관광정보 API 실시간 제공</p>
+            </div>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 no-scrollbar">
+            {wellnessSpots.map((spot) => (
+              <div
+                key={spot.contentId}
+                className="min-w-[220px] bg-white rounded-2xl shadow-sm border border-[#eae8e3] overflow-hidden shrink-0"
+              >
+                <div
+                  className="w-full h-28 bg-cover bg-center bg-[#eefcfd]"
+                  style={spot.imageUrl ? { backgroundImage: `url('${spot.imageUrl}')` } : undefined}
+                ></div>
+                <div className="p-3.5">
+                  <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#eefcfd] text-[#006067] border border-[#006067]/10">
+                    {spot.theme}
+                  </span>
+                  <p className="font-display font-extrabold text-sm text-[#1b1c19] mt-1.5">{spot.title}</p>
+                  <p className="text-[11px] text-[#5c6869] font-semibold mt-0.5">{spot.address}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Medical Tourism Designated Institutions (한국관광공사 의료관광정보 API) */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Stethoscope className="w-5 h-5 text-[#006067]" />
+            <div>
+              <h3 className="font-display font-extrabold text-2xl text-[#1b1c19] tracking-tight">의료관광 지정기관</h3>
+              <p className="text-xs text-[#5c6869] font-bold mt-1">한국관광공사 의료관광정보 API 실시간 제공</p>
+            </div>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 no-scrollbar">
+            {medicalSpots.map((spot) => (
+              <div
+                key={spot.contentId}
+                className="min-w-[220px] bg-white p-4 rounded-2xl shadow-sm border border-[#eae8e3] flex items-start gap-2.5 shrink-0"
+              >
+                <Stethoscope className="w-4 h-4 text-[#006067] shrink-0 mt-0.5" />
                 <div>
                   <p className="font-display font-extrabold text-sm text-[#1b1c19]">{spot.name}</p>
                   <p className="text-[11px] text-[#5c6869] font-semibold mt-0.5">{spot.address}</p>

@@ -19,7 +19,8 @@ import {
   Phone,
   X,
   Flower,
-  Citrus
+  Citrus,
+  Utensils
 } from "lucide-react";
 import { FOOD_ITEMS } from "../data";
 
@@ -29,6 +30,13 @@ const FALLBACK_JEJU_HOSPITALS = [
   { name: "한라병원 (권역외상센터)", phone: "064-740-5000", address: "제주시 도령로 65" },
   { name: "서귀포의료원 (서귀포 지역 응급)", phone: "064-730-3000", address: "서귀포시 동홍동 1530-2" },
   { name: "제주중앙병원", phone: "064-786-7000", address: "제주시 이도이동" }
+];
+
+// 한국관광공사 국문 관광정보 서비스(음식점 카테고리) API 응답을 못 받을 때 쓰는 오프라인 대체 목록
+const FALLBACK_JEJU_RESTAURANTS = [
+  { contentId: "fallback-1", title: "가시식당", address: "서귀포시 표선면 가시로565번길 24", imageUrl: null, tel: "" },
+  { contentId: "fallback-2", title: "가람돌솥밥", address: "서귀포시 중문관광로 332", imageUrl: null, tel: "" },
+  { contentId: "fallback-3", title: "가시아방국수", address: "서귀포시 성산읍 섭지코지로 10", imageUrl: null, tel: "" },
 ];
 
 interface DashboardScreenProps {
@@ -47,6 +55,7 @@ export default function DashboardScreen({
   const [searchQuery, setSearchQuery] = useState("");
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [hospitals, setHospitals] = useState(FALLBACK_JEJU_HOSPITALS);
+  const [restaurants, setRestaurants] = useState(FALLBACK_JEJU_RESTAURANTS);
 
   useEffect(() => {
     let active = true;
@@ -59,6 +68,23 @@ export default function DashboardScreen({
       })
       .catch(() => {
         console.warn("Using offline static fallback for emergency hospitals");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/tourism/restaurants")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.spots?.length > 0) {
+          setRestaurants(data.spots.slice(0, 10));
+        }
+      })
+      .catch(() => {
+        console.warn("Failed to load live Jeju restaurants");
       });
     return () => {
       active = false;
@@ -239,6 +265,37 @@ export default function DashboardScreen({
               </div>
             </div>
 
+          </div>
+        </section>
+
+        {/* Real Jeju Restaurants (한국관광공사 국문 관광정보 서비스, 음식점 카테고리) */}
+        <section className="mb-10 overflow-hidden">
+          <div className="flex items-center gap-2 mb-5">
+            <Utensils className="w-5 h-5 text-[#006067]" />
+            <div>
+              <h3 className="font-display font-extrabold text-2xl text-[#1b1c19] tracking-tight">제주 실시간 맛집</h3>
+              <p className="text-xs text-[#5c6869] font-bold mt-1">한국관광공사 실제 음식점 정보 · 탭하면 AI 위험도 분석으로 연결</p>
+            </div>
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar">
+            {restaurants.map((r) => (
+              <div
+                key={r.contentId}
+                id={`restaurant-card-${r.contentId}`}
+                onClick={() => onSelectFood(r.title)}
+                className="min-w-[220px] bg-white rounded-2xl shadow-sm hover:shadow-md border border-[#eae8e3] overflow-hidden shrink-0 cursor-pointer transition-all"
+              >
+                <div
+                  className="w-full h-32 bg-cover bg-center bg-[#eefcfd]"
+                  style={r.imageUrl ? { backgroundImage: `url('${r.imageUrl}')` } : undefined}
+                ></div>
+                <div className="p-3.5">
+                  <p className="font-display font-extrabold text-sm text-[#1b1c19]">{r.title}</p>
+                  <p className="text-[11px] text-[#5c6869] font-semibold mt-0.5">{r.address}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
