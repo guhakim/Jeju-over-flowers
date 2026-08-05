@@ -34,6 +34,9 @@ export default function FoodAnalysisScreen({
   const [analysis, setAnalysis] = useState<NutritionAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fallbackImageUrl, setFallbackImageUrl] = useState<string | null>(null);
+  const [fallbackImageSource, setFallbackImageSource] = useState<"photo" | "ai" | null>(null);
+  const [fallbackImageLoading, setFallbackImageLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -80,6 +83,52 @@ export default function FoodAnalysisScreen({
       active = false;
     };
   }, [foodName, selectedConditions]);
+
+  // 큐레이션된 5개 카테고리 사진이 매칭 안 되는 음식만 Gemini 이미지 생성으로 보완
+  // 큐레이션된 5개 카테고리 사진이 매칭 안 되는 음식만 보완 이미지를 찾는다.
+  // 1순위: 관광공사 실제 식당 사진 검색(무료, 진짜 사진) → 2순위: Gemini 이미지 생성(유료 플랜 필요, 폴백)
+  useEffect(() => {
+    setFallbackImageUrl(null);
+    setFallbackImageSource(null);
+    if (!analysis || getFoodImage(analysis.foodName)) return;
+
+    let active = true;
+    setFallbackImageLoading(true);
+
+    async function loadFallbackImage() {
+      try {
+        const photoRes = await fetch(`/api/tourism/food-photo?foodName=${encodeURIComponent(analysis!.foodName)}`);
+        const photoData = photoRes.ok ? await photoRes.json() : null;
+        if (!active) return;
+        if (photoData?.photo?.imageUrl) {
+          setFallbackImageUrl(photoData.photo.imageUrl);
+          setFallbackImageSource("photo");
+          return;
+        }
+
+        const aiRes = await fetch("/api/gemini/food-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ foodName: analysis!.foodName }),
+        });
+        const aiData = aiRes.ok ? await aiRes.json() : null;
+        if (active && aiData?.imageUrl) {
+          setFallbackImageUrl(aiData.imageUrl);
+          setFallbackImageSource("ai");
+        }
+      } catch {
+        console.warn("Fallback food image unavailable, using placeholder");
+      } finally {
+        if (active) setFallbackImageLoading(false);
+      }
+    }
+
+    loadFallbackImage();
+
+    return () => {
+      active = false;
+    };
+  }, [analysis?.foodName]);
 
   // Color helper for risk label/score
   const getRiskColor = (score: number) => {
@@ -174,16 +223,19 @@ export default function FoodAnalysisScreen({
               animate={{ opacity: 1, scale: 1 }}
             >
               <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-3xl overflow-hidden shadow-sm border border-[#eae8e3]">
-                {getFoodImage(analysis.foodName) ? (
+                {getFoodImage(analysis.foodName) || fallbackImageUrl ? (
                   <img
-                    src={getFoodImage(analysis.foodName)!}
+                    src={(getFoodImage(analysis.foodName) || fallbackImageUrl)!}
                     alt={analysis.foodName}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#eefcfd] to-[#f4f3ef] flex items-center justify-center">
-                    <Apple className="w-16 h-16 text-[#006067]/20" />
+                  <div className="w-full h-full bg-gradient-to-br from-[#eefcfd] to-[#f4f3ef] flex flex-col items-center justify-center gap-2">
+                    <Apple className={`w-16 h-16 text-[#006067]/20 ${fallbackImageLoading ? "animate-pulse" : ""}`} />
+                    {fallbackImageLoading && (
+                      <span className="text-[10px] font-extrabold text-[#006067]/40 tracking-widest uppercase">사진 찾는 중...</span>
+                    )}
                   </div>
                 )}
                 <div className="absolute top-4 right-4">
@@ -205,6 +257,10 @@ export default function FoodAnalysisScreen({
                   <p className="text-white/80 text-xs font-bold mt-1.5">
                     {getFoodImage(analysis.foodName)
                       ? "신선한 제주 로컬 식재료로 엄선된 향토 밥상"
+                      : fallbackImageSource === "photo"
+                      ? "한국관광공사 제공 실제 매장 사진 (참고용)"
+                      : fallbackImageSource === "ai"
+                      ? "AI가 생성한 참고용 이미지 (실제와 다를 수 있어요)"
                       : "AI가 건강 조건에 맞춰 분석한 맞춤 영양 정보"}
                   </p>
                 </div>

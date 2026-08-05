@@ -9,7 +9,8 @@ import { getJejuAirQuality, getJejuUvIndex } from "./api/_lib/weatherApi";
 import { getJejuBarrierFreeSpots } from "./api/_lib/jejuDataHub";
 import { getJejuWellnessSpots } from "./api/_lib/wellnessTourApi";
 import { getJejuMedicalTourismSpots } from "./api/_lib/medicalTourApi";
-import { getJejuRestaurants } from "./api/_lib/restaurantTourApi";
+import { getJejuRestaurants, searchJejuFoodPhoto } from "./api/_lib/restaurantTourApi";
+import { generateFoodImage } from "./api/_lib/foodImageApi";
 import { rejectIfRateLimited } from "./api/_lib/rateLimit";
 
 dotenv.config({ path: [".env.local", ".env"] });
@@ -173,7 +174,39 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 3. Emergency Hospitals Endpoint
+  // 3. Food Image Generation Endpoint (Gemini 이미지 생성)
+  app.post("/api/gemini/food-image", async (req, res) => {
+    if (rejectIfRateLimited(req, res, "gemini-food-image", 15)) return;
+    try {
+      const { foodName } = req.body;
+      if (!foodName) {
+        return res.status(400).json({ error: "Food name is required" });
+      }
+      const imageUrl = await generateFoodImage(foodName);
+      res.json({ imageUrl });
+    } catch (error: any) {
+      console.error("Food Image Error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate food image." });
+    }
+  });
+
+  // 4. Food Photo Search Endpoint (한국관광공사 TourAPI, 실제 식당 사진 검색)
+  app.get("/api/tourism/food-photo", async (req, res) => {
+    if (rejectIfRateLimited(req, res, "tourism-food-photo", 30)) return;
+    const foodName = typeof req.query?.foodName === "string" ? req.query.foodName : "";
+    if (!foodName) {
+      return res.status(400).json({ error: "foodName query parameter is required" });
+    }
+    try {
+      const photo = await searchJejuFoodPhoto(foodName);
+      res.json({ photo });
+    } catch (error: any) {
+      console.error("Food Photo Search Error:", error);
+      res.status(500).json({ error: error.message || "Failed to search food photo." });
+    }
+  });
+
+  // 5. Emergency Hospitals Endpoint
   app.get("/api/emergency/hospitals", async (req, res) => {
     if (rejectIfRateLimited(req, res, "emergency-hospitals", 30)) return;
     try {
@@ -185,7 +218,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 4. Environmental Conditions Endpoint
+  // 6. Environmental Conditions Endpoint
   app.get("/api/environment/jeju", async (req, res) => {
     if (rejectIfRateLimited(req, res, "environment-jeju", 30)) return;
     try {
@@ -197,7 +230,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 5. Barrier-Free Tourism Spots Endpoint
+  // 7. Barrier-Free Tourism Spots Endpoint
   app.get("/api/tourism/barrier-free", async (req, res) => {
     if (rejectIfRateLimited(req, res, "tourism-barrier-free", 30)) return;
     try {
@@ -209,7 +242,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 6. Wellness Tourism Spots Endpoint (한국관광공사 TourAPI)
+  // 8. Wellness Tourism Spots Endpoint (한국관광공사 TourAPI)
   app.get("/api/tourism/wellness", async (req, res) => {
     if (rejectIfRateLimited(req, res, "tourism-wellness", 30)) return;
     try {
@@ -221,7 +254,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 7. Medical Tourism Spots Endpoint (한국관광공사 TourAPI)
+  // 9. Medical Tourism Spots Endpoint (한국관광공사 TourAPI)
   app.get("/api/tourism/medical", async (req, res) => {
     if (rejectIfRateLimited(req, res, "tourism-medical", 30)) return;
     try {
@@ -233,7 +266,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 8. Restaurant Spots Endpoint (한국관광공사 TourAPI, 음식점 카테고리)
+  // 10. Restaurant Spots Endpoint (한국관광공사 TourAPI, 음식점 카테고리)
   app.get("/api/tourism/restaurants", async (req, res) => {
     if (rejectIfRateLimited(req, res, "tourism-restaurants", 30)) return;
     try {
@@ -245,7 +278,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
     }
   });
 
-  // 9. Vite or Static Files setup
+  // 11. Vite or Static Files setup
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
