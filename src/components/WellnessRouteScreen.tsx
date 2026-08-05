@@ -18,7 +18,8 @@ import {
   MapPin,
   Sparkles,
   Stethoscope,
-  LocateFixed
+  LocateFixed,
+  Navigation
 } from "lucide-react";
 import { WELLNESS_ITINERARY } from "../data";
 import { FoodVenueInfo } from "../types";
@@ -31,12 +32,12 @@ const FALLBACK_ENVIRONMENT = {
   uvHint: "양산 지참 및 차단제 도포 권장",
 };
 
-// 제주데이터허브 API 응답을 못 받을 때 쓰는 오프라인 대체 목록
+// 제주데이터허브 API 응답을 못 받을 때 쓰는 오프라인 대체 목록 (좌표 없음 — 지도는 실시간 데이터에서만 표시)
 const FALLBACK_BARRIER_FREE_SPOTS = [
-  { name: "한라수목원", address: "제주시 연동 1002" },
-  { name: "칠십리시공원", address: "서귀포시 서홍동 571-3" },
-  { name: "제주현대미술관", address: "제주시 한경면 저지리 2114-68" },
-  { name: "함덕서우봉해변", address: "제주시 조천읍 함덕리 산 1" },
+  { name: "한라수목원", address: "제주시 연동 1002", lat: null, lng: null },
+  { name: "칠십리시공원", address: "서귀포시 서홍동 571-3", lat: null, lng: null },
+  { name: "제주현대미술관", address: "제주시 한경면 저지리 2114-68", lat: null, lng: null },
+  { name: "함덕서우봉해변", address: "제주시 조천읍 함덕리 산 1", lat: null, lng: null },
 ];
 
 // 한국관광공사 웰니스관광정보 API 응답을 못 받을 때 쓰는 오프라인 대체 목록
@@ -80,6 +81,7 @@ export default function WellnessRouteScreen({
   const [isSaved, setIsSaved] = useState(false);
   const [environment, setEnvironment] = useState(FALLBACK_ENVIRONMENT);
   const [barrierFreeSpots, setBarrierFreeSpots] = useState(FALLBACK_BARRIER_FREE_SPOTS);
+  const [selectedMapSpot, setSelectedMapSpot] = useState<typeof FALLBACK_BARRIER_FREE_SPOTS[number] | null>(null);
   const [wellnessSpots, setWellnessSpots] = useState(FALLBACK_WELLNESS_SPOTS);
   const [medicalSpots, setMedicalSpots] = useState(FALLBACK_MEDICAL_SPOTS);
   const [nearMeStatus, setNearMeStatus] = useState<"idle" | "locating" | "active" | "denied">("idle");
@@ -192,6 +194,19 @@ export default function WellnessRouteScreen({
     };
   }, []);
 
+  // 지도에 표시할 무장애 여행지: 사용자가 목록에서 고른 곳 우선, 없으면 좌표가 있는 첫 실시간 데이터
+  const mapSpot = selectedMapSpot ?? barrierFreeSpots.find((s) => s.lat != null && s.lng != null) ?? null;
+  const mapEmbedUrl = mapSpot
+    ? (() => {
+        const delta = 0.01; // 약 1km 반경
+        const bbox = [mapSpot.lng! - delta, mapSpot.lat! - delta, mapSpot.lng! + delta, mapSpot.lat! + delta].join(",");
+        return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${mapSpot.lat},${mapSpot.lng}`;
+      })()
+    : null;
+  const mapDirectionsUrl = mapSpot
+    ? `https://map.kakao.com/link/to/${encodeURIComponent(mapSpot.name)},${mapSpot.lat},${mapSpot.lng}`
+    : null;
+
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbfa] text-[#1b1c19]">
       {/* Top App Bar with Glassmorphism */}
@@ -258,27 +273,43 @@ export default function WellnessRouteScreen({
               </span>
             </div>
 
-            {/* Stylized Vector Map Background */}
+            {/* 실제 무장애 여행지 위치 지도 (OpenStreetMap, 좌표는 제주데이터허브 실시간 데이터) */}
             <div className="w-full h-full min-h-[420px] relative">
-              <div 
-                className="w-full h-full bg-cover bg-center absolute inset-0 filter saturate-105"
-                style={{ 
-                  backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuBPL6gJqulllb6R6c0Szi99uahd-Xxb4IGDo2F3Yl4eFkqqcrjHMxHBUgIPgmI_ywaw1RasnUzFNqgK_wAjLMrE6GeOF_DdMkdkWv6NyFfwJVbXYDDpfMVKtfORS2DA-vYXo3vUNi38myvOmN5T5o0HoY9egZvAkkdi2YnV8F0ZVks8Qgc8e4xK-kDibwKsNbvwIyZmZ5nn4IOKkp0XPWVUnYVvdoNnB9i-t1l_aX2J-iiib3O_2Q4xS90U4a_K_Ec7_CT4y81VwVcb')` 
-                }}
-              ></div>
+              {mapEmbedUrl ? (
+                <iframe
+                  key={mapEmbedUrl}
+                  src={mapEmbedUrl}
+                  className="w-full h-full min-h-[420px] absolute inset-0 border-0"
+                  title={`${mapSpot?.name} 위치 지도`}
+                />
+              ) : (
+                <div className="w-full h-full min-h-[420px] bg-gradient-to-br from-[#eefcfd] to-[#f4f3ef] flex flex-col items-center justify-center gap-2">
+                  <MapPin className="w-10 h-10 text-[#006067]/20" />
+                  <p className="text-xs text-[#5c6869] font-bold">위치 정보를 불러오는 중이에요</p>
+                </div>
+              )}
 
-              {/* Floating Map Stats Overlay */}
-              <div className="absolute bottom-4 right-4 left-4 sm:left-auto bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-md border border-[#eae8e3] flex justify-around sm:justify-start items-center gap-5">
-                <div>
-                  <p className="text-[10px] font-bold text-[#5c6869] uppercase tracking-wider">총 하이킹 코스</p>
-                  <p className="text-xl font-extrabold text-[#006067] font-sans mt-0.5">4.2 km</p>
+              {/* Floating Spot Info Overlay */}
+              {mapSpot && (
+                <div className="absolute bottom-4 right-4 left-4 sm:left-auto bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-md border border-[#eae8e3] flex items-center gap-4 max-w-full">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[#5c6869] uppercase tracking-wider">선택된 무장애 여행지</p>
+                    <p className="text-base font-extrabold text-[#1b1c19] mt-0.5 truncate">{mapSpot.name}</p>
+                    <p className="text-[11px] text-[#5c6869] font-semibold truncate">{mapSpot.address}</p>
+                  </div>
+                  {mapDirectionsUrl && (
+                    <a
+                      href={mapDirectionsUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 flex items-center gap-1 text-xs font-extrabold text-white bg-[#006067] px-3 py-2 rounded-xl hover:bg-[#00787f] transition-all"
+                    >
+                      <Navigation className="w-3.5 h-3.5" />
+                      길찾기
+                    </a>
+                  )}
                 </div>
-                <div className="w-px h-8 bg-[#eae8e3]"></div>
-                <div>
-                  <p className="text-[10px] font-bold text-[#5c6869] uppercase tracking-wider">소모 칼로리</p>
-                  <p className="text-xl font-extrabold text-[#006067] font-sans mt-0.5">340 kcal</p>
-                </div>
-              </div>
+              )}
             </div>
           </motion.section>
 
@@ -411,18 +442,31 @@ export default function WellnessRouteScreen({
             <p className="text-xs text-[#5c6869] font-bold mt-1">제주데이터허브 제공 무장애 여행지 정보 기반</p>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 no-scrollbar">
-            {barrierFreeSpots.map((spot, idx) => (
-              <div
-                key={idx}
-                className="min-w-[220px] bg-white p-4 rounded-2xl shadow-sm border border-[#eae8e3] flex items-start gap-2.5 shrink-0"
-              >
-                <MapPin className="w-4 h-4 text-[#006067] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-display font-extrabold text-sm text-[#1b1c19]">{spot.name}</p>
-                  <p className="text-[11px] text-[#5c6869] font-semibold mt-0.5">{spot.address}</p>
-                </div>
-              </div>
-            ))}
+            {barrierFreeSpots.map((spot, idx) => {
+              const hasCoords = spot.lat != null && spot.lng != null;
+              const isSelected = mapSpot?.name === spot.name && mapSpot?.address === spot.address;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => hasCoords && setSelectedMapSpot(spot)}
+                  disabled={!hasCoords}
+                  className={`min-w-[220px] text-left bg-white p-4 rounded-2xl shadow-sm border flex items-start gap-2.5 shrink-0 transition-all ${
+                    isSelected ? "border-[#006067] ring-2 ring-[#006067]/15" : "border-[#eae8e3]"
+                  } ${hasCoords ? "cursor-pointer hover:border-[#bdc9ca]" : "cursor-default opacity-80"}`}
+                >
+                  <MapPin className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? "text-[#006067]" : "text-[#006067]/70"}`} />
+                  <div>
+                    <p className="font-display font-extrabold text-sm text-[#1b1c19]">{spot.name}</p>
+                    <p className="text-[11px] text-[#5c6869] font-semibold mt-0.5">{spot.address}</p>
+                    {hasCoords && (
+                      <span className="inline-block mt-1.5 text-[10px] font-extrabold text-[#006067]">
+                        {isSelected ? "지도에 표시 중" : "탭해서 지도 보기"}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </section>
 
