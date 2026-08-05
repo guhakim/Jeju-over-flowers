@@ -21,6 +21,7 @@ import {
   LocateFixed
 } from "lucide-react";
 import { WELLNESS_ITINERARY } from "../data";
+import { FoodVenueInfo } from "../types";
 
 // 에어코리아/기상청 API 응답을 못 받을 때 쓰는 오프라인 대체값
 const FALLBACK_ENVIRONMENT = {
@@ -68,7 +69,7 @@ const UV_HINTS: Record<string, string> = {
 interface WellnessRouteScreenProps {
   onBack: () => void;
   onChangeScreen: (screen: string) => void;
-  onSelectFood: (foodName: string, imageUrl?: string | null) => void;
+  onSelectFood: (foodName: string, venue?: FoodVenueInfo | null) => void;
 }
 
 export default function WellnessRouteScreen({

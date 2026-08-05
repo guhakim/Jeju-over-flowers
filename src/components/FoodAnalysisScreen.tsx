@@ -13,14 +13,17 @@ import {
   BookOpen,
   Apple,
   Flower,
-  AlertTriangle
+  AlertTriangle,
+  MapPin,
+  Navigation,
+  Phone
 } from "lucide-react";
-import { NutritionAnalysis } from "../types";
+import { NutritionAnalysis, FoodVenueInfo } from "../types";
 import { getDefaultAnalysis } from "../data";
 
 interface FoodAnalysisScreenProps {
   foodName: string;
-  venueImageUrl?: string | null;
+  venue?: FoodVenueInfo | null;
   selectedConditions: string[];
   onBack: () => void;
   onChangeScreen: (screen: string) => void;
@@ -28,7 +31,7 @@ interface FoodAnalysisScreenProps {
 
 export default function FoodAnalysisScreen({
   foodName,
-  venueImageUrl,
+  venue,
   selectedConditions,
   onBack,
   onChangeScreen,
@@ -179,7 +182,7 @@ export default function FoodAnalysisScreen({
                 {(() => {
                   // 식당 카드에서 넘어온 실제 매장 사진이 있으면 그걸 최우선으로 쓰고,
                   // 없을 때만 큐레이션된 카테고리 대표 이미지로 대체한다.
-                  const heroImage = venueImageUrl || getFoodImage(analysis.foodName);
+                  const heroImage = venue?.imageUrl || getFoodImage(analysis.foodName);
                   return heroImage ? (
                     <img
                       src={heroImage}
@@ -210,7 +213,7 @@ export default function FoodAnalysisScreen({
                   <span className="text-[10px] text-[#ffeaa7] font-extrabold tracking-widest uppercase block mb-1">JEJU WELLNESS DIET</span>
                   <h2 className="text-white font-display text-2xl md:text-3xl font-extrabold tracking-tight">{analysis.foodName}</h2>
                   <p className="text-white/80 text-xs font-bold mt-1.5">
-                    {venueImageUrl
+                    {venue?.imageUrl
                       ? "한국관광공사 제공 실제 매장 사진"
                       : getFoodImage(analysis.foodName)
                       ? "신선한 제주 로컬 식재료로 엄선된 향토 밥상"
@@ -219,6 +222,46 @@ export default function FoodAnalysisScreen({
                 </div>
               </div>
             </motion.section>
+
+            {/* Venue Address & Directions */}
+            {(venue?.address || (venue?.lat != null && venue?.lng != null)) && (
+              <motion.section
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white p-4 rounded-2xl shadow-sm border border-[#eae8e3] flex items-center justify-between gap-3"
+              >
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <MapPin className="w-4.5 h-4.5 text-[#006067] shrink-0 mt-0.5" />
+                  <p className="text-xs sm:text-sm text-[#1b1c19] font-bold leading-relaxed truncate">
+                    {venue?.address || "위치 정보 제공"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {venue?.tel && (
+                    <a
+                      href={`tel:${venue.tel}`}
+                      className="flex items-center gap-1 text-xs font-extrabold text-[#006067] bg-[#eefcfd] px-3 py-2 rounded-xl border border-[#006067]/10 hover:border-[#006067]/30 transition-all"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      전화
+                    </a>
+                  )}
+                  <a
+                    href={
+                      venue?.lat != null && venue?.lng != null
+                        ? `https://map.kakao.com/link/to/${encodeURIComponent(foodName)},${venue.lat},${venue.lng}`
+                        : `https://map.kakao.com/link/search/${encodeURIComponent(venue?.address ?? foodName)}`
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 text-xs font-extrabold text-white bg-[#006067] px-3 py-2 rounded-xl hover:bg-[#00787f] transition-all"
+                  >
+                    <Navigation className="w-3.5 h-3.5" />
+                    길찾기
+                  </a>
+                </div>
+              </motion.section>
+            )}
 
             {/* Venue-Name-Guess Warning */}
             {analysis.isVenueNameGuess && (

@@ -23,6 +23,7 @@ import {
   LocateFixed
 } from "lucide-react";
 import { FOOD_ITEMS } from "../data";
+import { FoodVenueInfo } from "../types";
 
 // 국립중앙의료원 응급의료기관 API 응답을 못 받을 때 쓰는 오프라인 대체 목록
 const FALLBACK_JEJU_HOSPITALS = [
@@ -34,9 +35,9 @@ const FALLBACK_JEJU_HOSPITALS = [
 
 // 한국관광공사 국문 관광정보 서비스(음식점 카테고리) API 응답을 못 받을 때 쓰는 오프라인 대체 목록
 const FALLBACK_JEJU_RESTAURANTS = [
-  { contentId: "fallback-1", title: "가시식당", address: "서귀포시 표선면 가시로565번길 24", imageUrl: null, tel: "", distanceM: null },
-  { contentId: "fallback-2", title: "가람돌솥밥", address: "서귀포시 중문관광로 332", imageUrl: null, tel: "", distanceM: null },
-  { contentId: "fallback-3", title: "가시아방국수", address: "서귀포시 성산읍 섭지코지로 10", imageUrl: null, tel: "", distanceM: null },
+  { contentId: "fallback-1", title: "가시식당", address: "서귀포시 표선면 가시로565번길 24", imageUrl: null, tel: "", distanceM: null, lat: null, lng: null },
+  { contentId: "fallback-2", title: "가람돌솥밥", address: "서귀포시 중문관광로 332", imageUrl: null, tel: "", distanceM: null, lat: null, lng: null },
+  { contentId: "fallback-3", title: "가시아방국수", address: "서귀포시 성산읍 섭지코지로 10", imageUrl: null, tel: "", distanceM: null, lat: null, lng: null },
 ];
 
 function formatDistance(distanceM: number | null): string | null {
@@ -47,7 +48,7 @@ function formatDistance(distanceM: number | null): string | null {
 interface DashboardScreenProps {
   selectedConditions: string[];
   onChangeScreen: (screen: string) => void;
-  onSelectFood: (foodName: string, imageUrl?: string | null) => void;
+  onSelectFood: (foodName: string, venue?: FoodVenueInfo | null) => void;
   onOpenChat: () => void;
 }
 
@@ -339,7 +340,15 @@ export default function DashboardScreen({
               <div
                 key={r.contentId}
                 id={`restaurant-card-${r.contentId}`}
-                onClick={() => onSelectFood(r.title, r.imageUrl)}
+                onClick={() =>
+                  onSelectFood(r.title, {
+                    imageUrl: r.imageUrl,
+                    address: r.address,
+                    lat: r.lat,
+                    lng: r.lng,
+                    tel: r.tel,
+                  })
+                }
                 className="min-w-[220px] bg-white rounded-2xl shadow-sm hover:shadow-md border border-[#eae8e3] overflow-hidden shrink-0 cursor-pointer transition-all"
               >
                 <div
@@ -377,7 +386,7 @@ export default function DashboardScreen({
                 key={food.id}
                 id={`food-card-${food.id}`}
                 whileHover={{ y: -5 }}
-                onClick={() => onSelectFood(food.name, food.imageUrl)}
+                onClick={() => onSelectFood(food.name, { imageUrl: food.imageUrl })}
                 className="min-w-[280px] md:min-w-[340px] bg-white rounded-2xl shadow-sm hover:shadow-md border border-[#eae8e3] overflow-hidden group cursor-pointer transition-all duration-300"
               >
                 {/* Image Wrapper with visual filters */}

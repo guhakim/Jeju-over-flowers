@@ -27,6 +27,8 @@ export interface RestaurantSpot {
   imageUrl: string | null;
   tel: string;
   distanceM: number | null;
+  lat: number | null;
+  lng: number | null;
 }
 
 function toItemList(items: any): any[] {
@@ -111,6 +113,9 @@ async function fetchJejuRestaurants(coords?: RestaurantCoords): Promise<Restaura
         imageUrl: item.firstimage ? item.firstimage.replace(/^http:\/\//, "https://") : null,
         tel: item.tel ?? "",
         distanceM: item.dist != null ? Math.round(parseFloat(item.dist)) : null,
+        // mapx=경도(lng), mapy=위도(lat) — KorService2 실측 응답 필드로 검증된 명명.
+        lat: item.mapy != null ? parseFloat(item.mapy) : null,
+        lng: item.mapx != null ? parseFloat(item.mapx) : null,
       }))
       .filter((s) => s.title);
 

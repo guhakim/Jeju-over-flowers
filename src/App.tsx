@@ -4,6 +4,7 @@ import DashboardScreen from "./components/DashboardScreen";
 import WellnessRouteScreen from "./components/WellnessRouteScreen";
 import FoodAnalysisScreen from "./components/FoodAnalysisScreen";
 import ChatModal from "./components/ChatModal";
+import { FoodVenueInfo } from "./types";
 
 type ScreenType = "welcome" | "home" | "route" | "food-analysis";
 
@@ -12,7 +13,7 @@ export default function App() {
   const [selectedConditions, setSelectedConditions] = useState<string[]>(["diabetes"]);
   const [currentScreen, setCurrentScreen] = useState<ScreenType>("welcome");
   const [selectedFood, setSelectedFood] = useState<string>("고기국수");
-  const [selectedFoodImage, setSelectedFoodImage] = useState<string | null>(null);
+  const [selectedFoodVenue, setSelectedFoodVenue] = useState<FoodVenueInfo | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
   // Toggle selection of conditions
@@ -27,9 +28,9 @@ export default function App() {
     setCurrentScreen("home");
   };
 
-  const handleSelectFood = (foodName: string, imageUrl?: string | null) => {
+  const handleSelectFood = (foodName: string, venue?: FoodVenueInfo | null) => {
     setSelectedFood(foodName);
-    setSelectedFoodImage(imageUrl ?? null);
+    setSelectedFoodVenue(venue ?? null);
     setCurrentScreen("food-analysis");
   };
 
@@ -66,7 +67,7 @@ export default function App() {
       {currentScreen === "food-analysis" && (
         <FoodAnalysisScreen
           foodName={selectedFood}
-          venueImageUrl={selectedFoodImage}
+          venue={selectedFoodVenue}
           selectedConditions={selectedConditions}
           onBack={() => setCurrentScreen("home")}
           onChangeScreen={(screen) => setCurrentScreen(screen as ScreenType)}

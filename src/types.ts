@@ -49,6 +49,14 @@ export interface NutritionAnalysis {
   };
 }
 
+export interface FoodVenueInfo {
+  imageUrl?: string | null;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  tel?: string | null;
+}
+
 export interface ChatMessage {
   role: "user" | "model";
   text: string;
