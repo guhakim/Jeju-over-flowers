@@ -12,6 +12,7 @@ export default function App() {
   const [selectedConditions, setSelectedConditions] = useState<string[]>(["diabetes"]);
   const [currentScreen, setCurrentScreen] = useState<ScreenType>("welcome");
   const [selectedFood, setSelectedFood] = useState<string>("고기국수");
+  const [selectedFoodImage, setSelectedFoodImage] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
   // Toggle selection of conditions
@@ -26,8 +27,9 @@ export default function App() {
     setCurrentScreen("home");
   };
 
-  const handleSelectFood = (foodName: string) => {
+  const handleSelectFood = (foodName: string, imageUrl?: string | null) => {
     setSelectedFood(foodName);
+    setSelectedFoodImage(imageUrl ?? null);
     setCurrentScreen("food-analysis");
   };
 
@@ -64,6 +66,7 @@ export default function App() {
       {currentScreen === "food-analysis" && (
         <FoodAnalysisScreen
           foodName={selectedFood}
+          venueImageUrl={selectedFoodImage}
           selectedConditions={selectedConditions}
           onBack={() => setCurrentScreen("home")}
           onChangeScreen={(screen) => setCurrentScreen(screen as ScreenType)}

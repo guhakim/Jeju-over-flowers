@@ -47,7 +47,7 @@ function formatDistance(distanceM: number | null): string | null {
 interface DashboardScreenProps {
   selectedConditions: string[];
   onChangeScreen: (screen: string) => void;
-  onSelectFood: (foodName: string) => void;
+  onSelectFood: (foodName: string, imageUrl?: string | null) => void;
   onOpenChat: () => void;
 }
 
@@ -339,7 +339,7 @@ export default function DashboardScreen({
               <div
                 key={r.contentId}
                 id={`restaurant-card-${r.contentId}`}
-                onClick={() => onSelectFood(r.title)}
+                onClick={() => onSelectFood(r.title, r.imageUrl)}
                 className="min-w-[220px] bg-white rounded-2xl shadow-sm hover:shadow-md border border-[#eae8e3] overflow-hidden shrink-0 cursor-pointer transition-all"
               >
                 <div
@@ -377,7 +377,7 @@ export default function DashboardScreen({
                 key={food.id}
                 id={`food-card-${food.id}`}
                 whileHover={{ y: -5 }}
-                onClick={() => onSelectFood(food.name)}
+                onClick={() => onSelectFood(food.name, food.imageUrl)}
                 className="min-w-[280px] md:min-w-[340px] bg-white rounded-2xl shadow-sm hover:shadow-md border border-[#eae8e3] overflow-hidden group cursor-pointer transition-all duration-300"
               >
                 {/* Image Wrapper with visual filters */}

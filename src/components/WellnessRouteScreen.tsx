@@ -68,7 +68,7 @@ const UV_HINTS: Record<string, string> = {
 interface WellnessRouteScreenProps {
   onBack: () => void;
   onChangeScreen: (screen: string) => void;
-  onSelectFood: (foodName: string) => void;
+  onSelectFood: (foodName: string, imageUrl?: string | null) => void;
 }
 
 export default function WellnessRouteScreen({

@@ -20,6 +20,7 @@ import { getDefaultAnalysis } from "../data";
 
 interface FoodAnalysisScreenProps {
   foodName: string;
+  venueImageUrl?: string | null;
   selectedConditions: string[];
   onBack: () => void;
   onChangeScreen: (screen: string) => void;
@@ -27,6 +28,7 @@ interface FoodAnalysisScreenProps {
 
 export default function FoodAnalysisScreen({
   foodName,
+  venueImageUrl,
   selectedConditions,
   onBack,
   onChangeScreen,
@@ -174,18 +176,23 @@ export default function FoodAnalysisScreen({
               animate={{ opacity: 1, scale: 1 }}
             >
               <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-3xl overflow-hidden shadow-sm border border-[#eae8e3]">
-                {getFoodImage(analysis.foodName) ? (
-                  <img
-                    src={getFoodImage(analysis.foodName)!}
-                    alt={analysis.foodName}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#eefcfd] to-[#f4f3ef] flex items-center justify-center">
-                    <Apple className="w-16 h-16 text-[#006067]/20" />
-                  </div>
-                )}
+                {(() => {
+                  // 식당 카드에서 넘어온 실제 매장 사진이 있으면 그걸 최우선으로 쓰고,
+                  // 없을 때만 큐레이션된 카테고리 대표 이미지로 대체한다.
+                  const heroImage = venueImageUrl || getFoodImage(analysis.foodName);
+                  return heroImage ? (
+                    <img
+                      src={heroImage}
+                      alt={analysis.foodName}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#eefcfd] to-[#f4f3ef] flex items-center justify-center">
+                      <Apple className="w-16 h-16 text-[#006067]/20" />
+                    </div>
+                  );
+                })()}
                 <div className="absolute top-4 right-4">
                   {analysis.isOfficialData ? (
                     <span className="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-xs text-emerald-800 border border-emerald-200/50 px-3.5 py-1.5 rounded-xl text-[10px] font-extrabold shadow-sm">
@@ -203,7 +210,9 @@ export default function FoodAnalysisScreen({
                   <span className="text-[10px] text-[#ffeaa7] font-extrabold tracking-widest uppercase block mb-1">JEJU WELLNESS DIET</span>
                   <h2 className="text-white font-display text-2xl md:text-3xl font-extrabold tracking-tight">{analysis.foodName}</h2>
                   <p className="text-white/80 text-xs font-bold mt-1.5">
-                    {getFoodImage(analysis.foodName)
+                    {venueImageUrl
+                      ? "한국관광공사 제공 실제 매장 사진"
+                      : getFoodImage(analysis.foodName)
                       ? "신선한 제주 로컬 식재료로 엄선된 향토 밥상"
                       : "AI가 건강 조건에 맞춰 분석한 맞춤 영양 정보"}
                   </p>
