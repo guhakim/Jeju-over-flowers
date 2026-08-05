@@ -204,36 +204,35 @@ export default function WelcomeScreen({
                 <button
                   id={`cond-card-${cond.id}`}
                   onClick={() => onToggleCondition(cond.id)}
-                  className={`w-full text-left p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 border-2 active:scale-[0.99] min-h-[150px] cursor-pointer relative overflow-hidden ${
-                    isSelected 
-                      ? "bg-white border-[#006067] shadow-md ring-4 ring-[#006067]/10" 
+                  className={`w-full text-left p-5.5 rounded-2xl flex items-center justify-between transition-all duration-300 border-2 active:scale-[0.99] cursor-pointer relative overflow-hidden ${
+                    isSelected
+                      ? "bg-white border-[#006067] shadow-md ring-4 ring-[#006067]/10"
                       : "bg-white border-[#eef0ec] hover:border-[#bdc9ca] shadow-sm hover:shadow-md"
                   }`}
                 >
-                  <div className="flex items-center justify-between w-full mb-5">
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors shrink-0 ${
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors shrink-0 ${
                       isSelected ? "bg-[#006067] text-white" : "bg-[#f4f3ef] text-[#006067] border border-[#e5e3de]"
                     }`}>
                       {renderIcon(cond.icon)}
                     </div>
-
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                      isSelected 
-                        ? "border-[#006067] bg-[#006067] text-white" 
-                        : "border-[#bdc9ca] bg-transparent"
-                    }`}>
-                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-display font-extrabold text-lg text-[#1b1c19]">{cond.name}</p>
+                        {isSelected && (
+                          <span className="text-[10px] bg-[#d0fbff] text-[#006067] font-bold px-2 py-0.5 rounded-md">선택됨</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-[#5c6869] font-semibold mt-1">{cond.description}</p>
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-display font-extrabold text-base md:text-lg text-[#1b1c19]">{cond.name}</p>
-                      {isSelected && (
-                        <span className="text-[10px] bg-[#d0fbff] text-[#006067] font-bold px-1.5 py-0.5 rounded-md">선택됨</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-[#5c6869] font-semibold mt-1">{cond.description}</p>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-300 shrink-0 ${
+                    isSelected
+                      ? "border-[#006067] bg-[#006067] text-white"
+                      : "border-[#bdc9ca] bg-transparent"
+                  }`}>
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
                   </div>
                 </button>
               </motion.div>
