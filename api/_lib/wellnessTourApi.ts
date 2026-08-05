@@ -78,7 +78,9 @@ async function fetchJejuWellnessSpots(): Promise<WellnessSpot[] | null> {
         title: item.title ?? "",
         address: item.baseAddr ?? "",
         theme: WELLNESS_THEME_LABELS[item.wellnessThemaCd] ?? "웰니스",
-        imageUrl: item.firstimage || null,
+        // TourAPI가 http:// 이미지 URL을 내려줄 때가 있는데, 배포 환경은 HTTPS라 브라우저가
+        // 혼합 콘텐츠로 차단해 사진이 아예 안 뜬다. CDN이 https도 지원하므로 프로토콜만 승격.
+        imageUrl: item.firstimage ? item.firstimage.replace(/^http:\/\//, "https://") : null,
         tel: item.tel ?? "",
       }))
       .filter((s) => s.title);

@@ -6,9 +6,8 @@ import {
   Search, 
   Edit, 
   Heart, 
-  Star, 
-  ArrowRight, 
-  Flame, 
+  Star,
+  Flame,
   ShieldAlert, 
   Sparkles,
   Droplet,
@@ -299,20 +298,11 @@ export default function DashboardScreen({
 
         {/* Local Safe Foods Scrolling Grid */}
         <section className="mb-10 overflow-hidden">
-          <div className="flex justify-between items-end mb-5">
-            <div>
-              <h3 className="font-display font-extrabold text-2xl text-[#1b1c19] tracking-tight">
-                추천 안심 식사 리스트
-              </h3>
-              <p className="text-xs text-[#5c6869] font-bold mt-1.5">사용자 당뇨 및 만성 질환 필터를 적용한 청정 제주 메뉴</p>
-            </div>
-            <button 
-              id="view-all-foods-btn"
-              onClick={() => onSelectFood("고기국수")}
-              className="text-[#006067] font-display text-xs font-extrabold flex items-center gap-1 hover:underline shrink-0 bg-[#eefcfd] px-3.5 py-2 rounded-xl border border-[#006067]/10"
-            >
-              <span>전체 보기</span> <ArrowRight className="w-4 h-4" />
-            </button>
+          <div className="mb-5">
+            <h3 className="font-display font-extrabold text-2xl text-[#1b1c19] tracking-tight">
+              추천 안심 식사 리스트
+            </h3>
+            <p className="text-xs text-[#5c6869] font-bold mt-1.5">사용자 당뇨 및 만성 질환 필터를 적용한 청정 제주 메뉴</p>
           </div>
 
           <div className="flex gap-5 overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar scroll-smooth">
