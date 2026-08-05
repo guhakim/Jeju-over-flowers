@@ -19,7 +19,8 @@ import {
   X,
   Flower,
   Citrus,
-  Utensils
+  Utensils,
+  LocateFixed
 } from "lucide-react";
 import { FOOD_ITEMS } from "../data";
 
@@ -33,10 +34,15 @@ const FALLBACK_JEJU_HOSPITALS = [
 
 // 한국관광공사 국문 관광정보 서비스(음식점 카테고리) API 응답을 못 받을 때 쓰는 오프라인 대체 목록
 const FALLBACK_JEJU_RESTAURANTS = [
-  { contentId: "fallback-1", title: "가시식당", address: "서귀포시 표선면 가시로565번길 24", imageUrl: null, tel: "" },
-  { contentId: "fallback-2", title: "가람돌솥밥", address: "서귀포시 중문관광로 332", imageUrl: null, tel: "" },
-  { contentId: "fallback-3", title: "가시아방국수", address: "서귀포시 성산읍 섭지코지로 10", imageUrl: null, tel: "" },
+  { contentId: "fallback-1", title: "가시식당", address: "서귀포시 표선면 가시로565번길 24", imageUrl: null, tel: "", distanceM: null },
+  { contentId: "fallback-2", title: "가람돌솥밥", address: "서귀포시 중문관광로 332", imageUrl: null, tel: "", distanceM: null },
+  { contentId: "fallback-3", title: "가시아방국수", address: "서귀포시 성산읍 섭지코지로 10", imageUrl: null, tel: "", distanceM: null },
 ];
+
+function formatDistance(distanceM: number | null): string | null {
+  if (distanceM == null) return null;
+  return distanceM < 1000 ? `${distanceM}m` : `${(distanceM / 1000).toFixed(1)}km`;
+}
 
 interface DashboardScreenProps {
   selectedConditions: string[];
@@ -55,6 +61,7 @@ export default function DashboardScreen({
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [hospitals, setHospitals] = useState(FALLBACK_JEJU_HOSPITALS);
   const [restaurants, setRestaurants] = useState(FALLBACK_JEJU_RESTAURANTS);
+  const [nearMeStatus, setNearMeStatus] = useState<"idle" | "locating" | "active" | "denied">("idle");
 
   useEffect(() => {
     let active = true;
@@ -73,22 +80,53 @@ export default function DashboardScreen({
     };
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/tourism/restaurants")
+  const loadRestaurants = (active: { current: boolean }, coords?: { lat: number; lng: number }) => {
+    const query = coords ? `?lat=${coords.lat}&lng=${coords.lng}` : "";
+    fetch(`/api/tourism/restaurants${query}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (active && data?.spots?.length > 0) {
+        if (active.current && data?.spots?.length > 0) {
           setRestaurants(data.spots.slice(0, 10));
+          if (coords) setNearMeStatus("active");
+        } else if (coords) {
+          // 위치는 받았지만 반경 내 결과가 없는 경우 — 지역 전체 목록은 그대로 두고 상태만 되돌린다.
+          setNearMeStatus("idle");
         }
       })
       .catch(() => {
         console.warn("Failed to load live Jeju restaurants");
+        if (coords) setNearMeStatus("idle");
       });
+  };
+
+  useEffect(() => {
+    const active = { current: true };
+    loadRestaurants(active);
     return () => {
-      active = false;
+      active.current = false;
     };
   }, []);
+
+  const handleFindNearMe = () => {
+    if (!navigator.geolocation) {
+      setNearMeStatus("denied");
+      return;
+    }
+    setNearMeStatus("locating");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        loadRestaurants(
+          { current: true },
+          { lat: position.coords.latitude, lng: position.coords.longitude }
+        );
+      },
+      () => {
+        // 권한 거부/실패 시 지금 보이던 제주 전체 목록을 그대로 유지 (폴백)
+        setNearMeStatus("denied");
+      },
+      { timeout: 8000 }
+    );
+  };
 
   // Format the mode text based on selected conditions
   const getConditionsText = () => {
@@ -267,13 +305,34 @@ export default function DashboardScreen({
 
         {/* Real Jeju Restaurants (한국관광공사 국문 관광정보 서비스, 음식점 카테고리) */}
         <section className="mb-10 overflow-hidden">
-          <div className="flex items-center gap-2 mb-5">
-            <Utensils className="w-5 h-5 text-[#006067]" />
-            <div>
-              <h3 className="font-display font-extrabold text-2xl text-[#1b1c19] tracking-tight">제주 실시간 맛집</h3>
-              <p className="text-xs text-[#5c6869] font-bold mt-1">한국관광공사 실제 음식점 정보 · 탭하면 AI 위험도 분석으로 연결</p>
+          <div className="flex items-center justify-between gap-2 mb-5">
+            <div className="flex items-center gap-2">
+              <Utensils className="w-5 h-5 text-[#006067]" />
+              <div>
+                <h3 className="font-display font-extrabold text-2xl text-[#1b1c19] tracking-tight">제주 실시간 맛집</h3>
+                <p className="text-xs text-[#5c6869] font-bold mt-1">
+                  {nearMeStatus === "active"
+                    ? "내 위치 기준 가까운 순으로 정렬됨"
+                    : "한국관광공사 실제 음식점 정보 · 탭하면 AI 위험도 분석으로 연결"}
+                </p>
+              </div>
             </div>
+            <button
+              id="near-me-btn"
+              onClick={handleFindNearMe}
+              disabled={nearMeStatus === "locating"}
+              className="shrink-0 flex items-center gap-1.5 text-xs font-extrabold text-[#006067] bg-[#eefcfd] px-3.5 py-2 rounded-xl border border-[#006067]/10 hover:border-[#006067]/30 transition-all disabled:opacity-60"
+            >
+              <LocateFixed className={`w-4 h-4 ${nearMeStatus === "locating" ? "animate-pulse" : ""}`} />
+              {nearMeStatus === "locating" ? "위치 확인 중" : "내 주변"}
+            </button>
           </div>
+
+          {nearMeStatus === "denied" && (
+            <p className="text-[11px] text-[#a15f21] font-bold mb-3 -mt-2">
+              위치 정보를 가져올 수 없어 제주 전체 목록을 보여드리고 있어요. 브라우저 설정에서 위치 권한을 확인해 주세요.
+            </p>
+          )}
 
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar">
             {restaurants.map((r) => (
@@ -288,7 +347,14 @@ export default function DashboardScreen({
                   style={r.imageUrl ? { backgroundImage: `url('${r.imageUrl}')` } : undefined}
                 ></div>
                 <div className="p-3.5">
-                  <p className="font-display font-extrabold text-sm text-[#1b1c19]">{r.title}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-display font-extrabold text-sm text-[#1b1c19]">{r.title}</p>
+                    {formatDistance(r.distanceM) && (
+                      <span className="shrink-0 text-[10px] font-extrabold text-[#006067] bg-[#eefcfd] px-1.5 py-0.5 rounded-md">
+                        {formatDistance(r.distanceM)}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] text-[#5c6869] font-semibold mt-0.5">{r.address}</p>
                 </div>
               </div>

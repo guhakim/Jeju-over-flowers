@@ -1,4 +1,4 @@
-import { getJejuRestaurants } from "../_lib/restaurantTourApi.js";
+import { getJejuRestaurants, parseCoordsFromQuery } from "../_lib/restaurantTourApi.js";
 import { rejectIfRateLimited } from "../_lib/rateLimit.js";
 
 export default async function handler(req: any, res: any) {
@@ -8,7 +8,7 @@ export default async function handler(req: any, res: any) {
   if (rejectIfRateLimited(req, res, "tourism-restaurants", 30)) return;
 
   try {
-    const spots = await getJejuRestaurants();
+    const spots = await getJejuRestaurants(parseCoordsFromQuery(req.query));
     res.status(200).json({ spots: spots ?? [] });
   } catch (error: any) {
     console.error("Restaurant Spots Error:", error);

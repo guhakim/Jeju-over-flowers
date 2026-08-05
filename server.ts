@@ -9,7 +9,7 @@ import { getJejuAirQuality, getJejuUvIndex } from "./api/_lib/weatherApi";
 import { getJejuBarrierFreeSpots } from "./api/_lib/jejuDataHub";
 import { getJejuWellnessSpots } from "./api/_lib/wellnessTourApi";
 import { getJejuMedicalTourismSpots } from "./api/_lib/medicalTourApi";
-import { getJejuRestaurants } from "./api/_lib/restaurantTourApi";
+import { getJejuRestaurants, parseCoordsFromQuery } from "./api/_lib/restaurantTourApi";
 import { rejectIfRateLimited } from "./api/_lib/rateLimit";
 
 dotenv.config({ path: [".env.local", ".env"] });
@@ -233,7 +233,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
   app.get("/api/tourism/restaurants", async (req, res) => {
     if (rejectIfRateLimited(req, res, "tourism-restaurants", 30)) return;
     try {
-      const spots = await getJejuRestaurants();
+      const spots = await getJejuRestaurants(parseCoordsFromQuery(req.query));
       res.json({ spots: spots ?? [] });
     } catch (error: any) {
       console.error("Restaurant Spots Error:", error);
