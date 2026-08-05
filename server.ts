@@ -7,7 +7,7 @@ import { lookupOfficialNutrition, formatOfficialNutritionForPrompt, sanitizeNutr
 import { getJejuEmergencyHospitals } from "./api/_lib/emergencyMedicalApi";
 import { getJejuAirQuality, getJejuUvIndex } from "./api/_lib/weatherApi";
 import { getJejuBarrierFreeSpots } from "./api/_lib/jejuDataHub";
-import { getJejuWellnessSpots } from "./api/_lib/wellnessTourApi";
+import { getJejuWellnessSpots, parseCoordsFromQuery as parseWellnessCoordsFromQuery } from "./api/_lib/wellnessTourApi";
 import { getJejuMedicalTourismSpots } from "./api/_lib/medicalTourApi";
 import { getJejuRestaurants, parseCoordsFromQuery } from "./api/_lib/restaurantTourApi";
 import { rejectIfRateLimited } from "./api/_lib/rateLimit";
@@ -209,7 +209,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
   app.get("/api/tourism/wellness", async (req, res) => {
     if (rejectIfRateLimited(req, res, "tourism-wellness", 30)) return;
     try {
-      const spots = await getJejuWellnessSpots();
+      const spots = await getJejuWellnessSpots(parseWellnessCoordsFromQuery(req.query));
       res.json({ spots: spots ?? [] });
     } catch (error: any) {
       console.error("Wellness Spots Error:", error);
