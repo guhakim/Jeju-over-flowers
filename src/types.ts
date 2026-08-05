@@ -34,10 +34,6 @@ export interface NutritionAnalysis {
   riskLabelHypertension: string;
   riskScoreKidney: number;
   riskLabelKidney: string;
-  riskScoreAllergy: number;
-  riskLabelAllergy: string;
-  riskScoreVegan: number;
-  riskLabelVegan: string;
   aiRecommendation: string;
   nutrition: {
     carbs: string;

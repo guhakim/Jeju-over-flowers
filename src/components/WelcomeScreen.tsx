@@ -190,8 +190,8 @@ export default function WelcomeScreen({
           </div>
         </div>
 
-        {/* Other 3 Cards below (Interactive layout block) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
+        {/* Remaining Condition Card below (Interactive layout block) */}
+        <div className="grid grid-cols-1 gap-5 mt-5">
           {HEALTH_CONDITIONS.slice(2).map((cond, idx) => {
             const isSelected = selectedConditions.includes(cond.id);
             return (

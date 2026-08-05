@@ -19,18 +19,6 @@ export const HEALTH_CONDITIONS: HealthCondition[] = [
     description: "칼륨/인 추적 관리",
     icon: "LayoutGrid",
   },
-  {
-    id: "allergy",
-    name: "알레르기",
-    description: "성분 교차 검증",
-    icon: "UtensilsCrossed",
-  },
-  {
-    id: "vegan",
-    name: "비건",
-    description: "식물성 식단 필터",
-    icon: "Leaf",
-  },
 ];
 
 export const WELLNESS_ITINERARY: ItineraryItem[] = [
@@ -110,10 +98,6 @@ const DEFAULT_ANALYSIS_MAP: Record<string, NutritionAnalysis> = {
     riskLabelHypertension: "매우 위험",
     riskScoreKidney: 3.5,
     riskLabelKidney: "주의",
-    riskScoreAllergy: 1.5,
-    riskLabelAllergy: "안전",
-    riskScoreVegan: 5.0,
-    riskLabelVegan: "매우 위험",
     aiRecommendation: "안전하게 먹는 방법:\n면은 절반만 드시고, 국물은 가급적 피하세요. 육수는 장시간 돼지 사골을 우려내어 나트륨과 포화지방 함량이 높습니다.",
     nutrition: {
       carbs: "78g (높음)",
@@ -138,10 +122,6 @@ const DEFAULT_ANALYSIS_MAP: Record<string, NutritionAnalysis> = {
     riskLabelHypertension: "주의",
     riskScoreKidney: 2.5,
     riskLabelKidney: "주의",
-    riskScoreAllergy: 1.0,
-    riskLabelAllergy: "안전",
-    riskScoreVegan: 5.0,
-    riskLabelVegan: "매우 위험",
     aiRecommendation: "안전하게 먹는 방법:\n양념된 고기보다는 생구이를 고르시고, 신선한 상추와 깻잎 등 쌈채소를 고기보다 2배 많이 싸서 드세요. 나트륨을 흡수해 배출하는 데 큰 도움이 됩니다.",
     nutrition: {
       carbs: "2g (안전)",
@@ -166,10 +146,6 @@ const DEFAULT_ANALYSIS_MAP: Record<string, NutritionAnalysis> = {
     riskLabelHypertension: "안전",
     riskScoreKidney: 3.0,
     riskLabelKidney: "주의",
-    riskScoreAllergy: 4.5,
-    riskLabelAllergy: "위험",
-    riskScoreVegan: 4.0,
-    riskLabelVegan: "위험",
     aiRecommendation: "안전하게 먹는 방법:\n전복죽은 비교적 당지수가 낮지만 쌀이 푹 퍼진 상태라 흡수가 빠릅니다. 식사 전 가벼운 반찬이나 오이/당근 등 채소를 먼저 한 입 드신 뒤 전복죽을 드시면 혈당이 천천히 오릅니다.",
     nutrition: {
       carbs: "45g (보통)",
@@ -194,10 +170,6 @@ const DEFAULT_ANALYSIS_MAP: Record<string, NutritionAnalysis> = {
     riskLabelHypertension: "주의",
     riskScoreKidney: 3.5,
     riskLabelKidney: "주의",
-    riskScoreAllergy: 3.0,
-    riskLabelAllergy: "주의",
-    riskScoreVegan: 4.5,
-    riskLabelVegan: "위험",
     aiRecommendation: "안전하게 먹는 방법:\n소금 간이 되어 있는 생선이므로 밥과 넉넉한 채소를 곁들이며, 레몬즙을 가득 뿌려 싱거운 맛을 보완해 드시면 나트륨 과잉 섭취를 막을 수 있습니다.",
     nutrition: {
       carbs: "1g (안전)",
@@ -234,10 +206,6 @@ export function getDefaultAnalysis(foodName: string): NutritionAnalysis {
     riskLabelHypertension: "주의",
     riskScoreKidney: 2.5,
     riskLabelKidney: "안전",
-    riskScoreAllergy: 1.0,
-    riskLabelAllergy: "안전",
-    riskScoreVegan: 3.0,
-    riskLabelVegan: "주의",
     aiRecommendation: "안전하게 먹는 방법:\n이 음식은 염분과 단순당 조절이 필요할 수 있으니 양념을 적게 묻혀 드시고, 식후 가벼운 20분 산책을 권해 드립니다.",
     nutrition: {
       carbs: "35g (보통)",

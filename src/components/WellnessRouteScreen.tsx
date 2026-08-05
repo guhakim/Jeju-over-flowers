@@ -281,7 +281,7 @@ export default function WellnessRouteScreen({
                 </div>
               </div>
               <p className="text-xs text-white/90 font-bold leading-relaxed mt-5">
-                만성 저혈압 및 알레르기 수치를 포함해 최상의 생체 수용성을 보여주는 자연 친화 루트입니다.
+                당뇨·고혈압·신장 수치를 포함해 최상의 생체 수용성을 보여주는 자연 친화 루트입니다.
               </p>
             </div>
           </motion.section>

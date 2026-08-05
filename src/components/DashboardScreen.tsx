@@ -98,8 +98,6 @@ export default function DashboardScreen({
       if (c === "diabetes") return "당뇨 관리";
       if (c === "hypertension") return "고혈압 관리";
       if (c === "kidney") return "신장 질환 케어";
-      if (c === "allergy") return "알레르기 체크";
-      if (c === "vegan") return "비건 지향";
       return c;
     });
     return mapped.join(" + ");

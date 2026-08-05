@@ -36,7 +36,7 @@ export default async function handler(req: any, res: any) {
 
     const prompt = `당신은 제주의 향토 음식 영양 분석 및 위험도를 정밀히 분석하는 의료/웰니스 전문가 AI입니다.
 음식 이름: "${foodName}"
-사용자의 현재 건강 위험 요인/관심사: [${conditionListStr}] (예: 당뇨, 고혈압, 신장 질환, 알레르기, 비건)
+사용자의 현재 건강 위험 요인/관심사: [${conditionListStr}] (예: 당뇨, 고혈압, 신장 질환)
 ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
 
 이 음식에 대해 다음 조건에 맞춰 분석하여 JSON 형태로 반환해 주세요.
@@ -65,10 +65,6 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
             riskLabelHypertension: { type: Type.STRING, description: "고혈압 위험 라벨" },
             riskScoreKidney: { type: Type.NUMBER, description: "신장 질환 위험 점수 (1.0~5.0)" },
             riskLabelKidney: { type: Type.STRING, description: "신장 질환 위험 라벨" },
-            riskScoreAllergy: { type: Type.NUMBER, description: "알레르기 위험 점수 (1.0~5.0)" },
-            riskLabelAllergy: { type: Type.STRING, description: "알레르기 위험 라벨" },
-            riskScoreVegan: { type: Type.NUMBER, description: "비건 적합 점수 (1.0~5.0, 1.0이 완전 비건 친화, 5.0이 완전 부적합)" },
-            riskLabelVegan: { type: Type.STRING, description: "비건 적합 라벨 ('안전' = 비건 가능, '위험' = 육류 포함 등)" },
             aiRecommendation: { type: Type.STRING, description: "안전하게 먹는 방법 가이드" },
             nutrition: {
               type: Type.OBJECT,
@@ -93,7 +89,7 @@ ${officialNutrition ? formatOfficialNutritionForPrompt(officialNutrition) : ""}
           },
           required: [
             "foodName", "isVenueNameGuess", "riskScoreDiabetes", "riskLabelDiabetes", "riskScoreHypertension", "riskLabelHypertension",
-            "riskScoreKidney", "riskLabelKidney", "riskScoreAllergy", "riskLabelAllergy", "riskScoreVegan", "riskLabelVegan",
+            "riskScoreKidney", "riskLabelKidney",
             "aiRecommendation", "nutrition", "alternative"
           ]
         },
