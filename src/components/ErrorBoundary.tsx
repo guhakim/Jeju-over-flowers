@@ -9,6 +9,9 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // 이 프로젝트엔 @types/react가 없어 Component가 any로 해석되고, extends any인
+  // 클래스는 상속 멤버(props/state)를 자동으로 갖지 못한다. 타입만 명시해서 알려준다.
+  declare props: ErrorBoundaryProps;
   state: ErrorBoundaryState = { hasError: false };
 
   static getDerivedStateFromError(): ErrorBoundaryState {
