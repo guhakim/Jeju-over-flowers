@@ -522,6 +522,16 @@ export default function WellnessRouteScreen({
                   </div>
                   <p className="font-display font-extrabold text-sm text-[#1b1c19] mt-1.5">{spot.title}</p>
                   <p className="text-[11px] text-[#5c6869] font-semibold mt-0.5">{spot.address}</p>
+                  <a
+                    href={`https://map.kakao.com/link/search/${encodeURIComponent(spot.address || spot.title)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-2.5 flex items-center justify-center gap-1 text-[11px] font-extrabold text-white bg-[#006067] px-3 py-2 rounded-xl hover:bg-[#00787f] active:scale-95 transition-all"
+                  >
+                    <Navigation className="w-3.5 h-3.5" />
+                    길찾기
+                  </a>
                 </div>
               </div>
             ))}
